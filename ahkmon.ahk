@@ -21,7 +21,7 @@ ClipChanged(Type) {
                     SetControlDelay -1
                     ControlClick x150 y275, DeepL
                     Send, ^a{BackSpace}
-                    Send, ^v
+                    Send, {Ctrl Down}v{Ctrl Up}
                     Sleep 750
                     WinActivate, ahk_exe DQXGame.exe
                 }
