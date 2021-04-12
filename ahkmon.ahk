@@ -3,6 +3,20 @@
 #SingleInstance force
 SendMode Input
 
+Gui, New, AlwaysOnTop, ahkmon
+Gui Font, s10, Segoe UI
+Gui, Add, CheckBox, vLog, Enable logging to file?
+Gui, Add, Button, gSend, Run ahkmon
+Gui, Show, w200 h75
+Return
+
+GuiEscape:
+GuiClose:
+    ExitApp
+
+Send:
+Gui, Submit, Hide
+
 OnClipboardChange("ClipChanged")
 return
 
@@ -17,6 +31,7 @@ ClipChanged(Type) {
                 Process, Exist, DQ10Dialog.exe
 
                 if ErrorLevel {
+
                     ; Focus DeepL window
                     WinActivate, ahk_exe DeepL.exe
 
@@ -32,31 +47,42 @@ ClipChanged(Type) {
                     ; pressing Ctrl+V to paste
                     Send, ^a{BackSpace}
                     Send, {Ctrl Down}v{Ctrl Up}
+                    Sleep 250
 
-                    ; Write clipboard contents to file
-                    FormatTime, TimeString,, [dd-MM-yyyy] [HH:mm]
-                    FileAppend, %TimeString% %clipboard%`n`n, dq_dialog_jp.txt, UTF-16
+                    ; Write clipboard contents to file if logging is enabled
+                    LogToFile("dq_dialog_jp.txt")
 
                     ; DeepL sometimes pauses for a bit when you paste, so give it
                     ; time to realize what we just did so the paste gets into the
                     ; box. Have also seen incomplete pastes when tuning this lower
                     Sleep 750
 
-                    ; Eng
-                    Send, {Tab}
-                    Sleep 150
-                    Send, {Ctrl Down}a
-                    Sleep 10
-                    Send, c{Ctrl Up}
-                    Sleep 10
-                    Send, {Tab}{Tab}
-                    Sleep 50
-                    FileAppend, %TimeString% %clipboard%`n`n, dq_dialog_translated.txt, UTF-16
-
+                    ; If logging is enabled, also log the translated text to file
+                    Global Log
+                    if (Log = 1) {
+                        Send, {Tab}
+                        Sleep 150
+                        Send, {Ctrl Down}a
+                        Sleep 10
+                        Send, c{Ctrl Up}
+                        Sleep 10
+                        Send, {Tab}{Tab}
+                        Sleep 50
+                        LogToFile("dq_dialog_translated.txt")
+                    }
+                    
                     ; Re-focus DQX Window
                     WinActivate, ahk_exe DQXGame.exe
                 }
             }
         }
+    }
+}
+
+LogToFile(logFile) {
+    Global Log
+    if (Log = 1) {
+        FormatTime, TimeString,, [dd-MM-yyyy] [HH:mm]
+        FileAppend, %TimeString% %clipboard%`n`n, %logfile%, UTF-16
     }
 }
