@@ -23,21 +23,10 @@ ClipChanged(Type) {
                     ; Get the full window's position as user could have resized
                     WinGetPos, X, Y, W, H, DeepL
 
-                    ; Take WxH and get new coords for the translated window.
-                    ; Gets coords 25% into the window
-                    tNewW := (W * .75)
-                    tNewH := (H * .75)
-
-                    ; DeepL tries to give suggestions when you click into the
-                    ; translated window, so we click out of it to remove
-                    ; the suggestion box.
-                    cNewW := (W * .98)
-                    cNewH := (H * .98)
-
                     ; Virtually click the mouse in the DeepL translation window 
                     ; (don't physically move it)
                     SetControlDelay -1
-                    ControlClick x150 y275, DeepL
+                    ControlClick x75 y200, DeepL
 
                     ; Remove any existing text in the translation box before
                     ; pressing Ctrl+V to paste
@@ -53,17 +42,16 @@ ClipChanged(Type) {
                     ; box. Have also seen incomplete pastes when tuning this lower
                     Sleep 750
 
-                    ; Copy translated text to clipboard and send to file
-                    SetControlDelay -1
-                    ControlClick x%tNewW% y%tNewH%, DeepL
-                    Send, {Ctrl Down}a{Ctrl Up}
-                    Send, {Ctrl Down}c{Ctrl Up}
-                    Sleep 250
+                    ; Eng
+                    Send, {Tab}
+                    Sleep 150
+                    Send, {Ctrl Down}a
+                    Sleep 10
+                    Send, c{Ctrl Up}
+                    Sleep 10
+                    Send, {Tab}{Tab}
+                    Sleep 50
                     FileAppend, %TimeString% %clipboard%`n`n, dq_dialog_translated.txt, UTF-16
-
-                    ; Execute the click to remove the suggestion box
-                    SetControlDelay -1
-                    ControlClick x%cNewW% y%cNewH%, DeepL
 
                     ; Re-focus DQX Window
                     WinActivate, ahk_exe DQXGame.exe
