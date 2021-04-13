@@ -43,6 +43,9 @@ ClipChanged(Type) {
                     SetControlDelay -1
                     ControlClick x75 y200, DeepL
 
+                    ; Remove foreign character from clipboard
+                    Clipboard := StrReplace(Clipboard, "「","")
+
                     ; Remove any existing text in the translation box before
                     ; pressing Ctrl+V to paste
                     Send, ^a{BackSpace}
