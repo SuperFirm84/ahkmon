@@ -3,6 +3,7 @@
 #SingleInstance force
 SendMode Input
 
+; Create GUI to toggle features on/off
 Gui, New, AlwaysOnTop, ahkmon
 Gui Font, s10, Segoe UI
 Gui, Add, CheckBox, vLog, Enable logging to file?
