@@ -35,21 +35,31 @@ ClipChanged(Type) {
 
                     ; Focus DeepL window
                     WinActivate, ahk_exe DeepL.exe
+                    WinWaitActive, ahk_exe DeepL.exe
 
                     ; Get the full window's position as user could have resized
                     WinGetPos, X, Y, W, H, DeepL
 
+                    ; Take WxH and get new coords by % for the translated window.
+                    tNewW := (W * .50)
+                    tNewH := (H * .75)
+
+                    ; Take WxH and get new coords by % for the copied window.
+                    cNewW := (W * .20)
+                    cNewH := (H * .20)
+
                     ; Virtually click the mouse in the DeepL translation window 
                     ; (don't physically move it)
                     SetControlDelay -1
-                    ControlClick x75 y200, DeepL
+                    ControlClick x%cNewW% y%cNewH%, ahk_exe DeepL.exe
 
                     ; Remove foreign character from clipboard
                     Clipboard := StrReplace(Clipboard, "「","")
 
                     ; Remove any existing text in the translation box before
                     ; pressing Ctrl+V to paste
-                    Send, ^a{BackSpace}
+                    Send, {Ctrl Down}a{Ctrl Up}
+                    Send, {BackSpace}
                     Send, {Ctrl Down}v{Ctrl Up}
                     Sleep 250
 
@@ -64,14 +74,22 @@ ClipChanged(Type) {
                     ; If logging is enabled, also log the translated text to file
                     Global Log
                     if (Log = 1) {
-                        Send, {Tab}
-                        Sleep 150
-                        Send, {Ctrl Down}a
-                        Sleep 10
-                        Send, c{Ctrl Up}
-                        Sleep 10
-                        Send, {Tab}{Tab}
+
+	                    ; Get the full window's position as user could have resized
+	                    WinGetPos, X, Y, W, H, DeepL
+
+	                    ; Take WxH and get new coords by % for the translated window.
+	                    tNewW := (W * .50)
+	                    tNewH := (H * .70)
+
+	                    ; Click in the translated box and copy to clipboard + log
+	                    SetControlDelay -1
+	                    ControlClick x%tNewW% y%tNewH%, ahk_exe DeepL.exe
+                        Send, {Ctrl Down}a{Ctrl Up}
                         Sleep 50
+                        Send, {Ctrl Down}c{Ctrl Up}
+                        Sleep 50
+                        Send, {Tab}{Tab}
                         LogToFile("dq_dialog_translated.txt")
                     }
                     
