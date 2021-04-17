@@ -1,110 +1,116 @@
 #Persistent
 #NoEnv
 #SingleInstance force
+#Include <clipChanged>
+#Include <logToFile>
+#Include <openDQDialog>
 SendMode Input
 
-; Create GUI to toggle features on/off
-Gui, New, AlwaysOnTop, ahkmon
-Gui Font, s10, Segoe UI
+;=== Load Start GUI settings from file ======================================
+IniRead, Log, settings.ini, settings, Log
+IniRead, Overlay, settings.ini, settings, Overlay
+IniRead, ResizeOverlay, settings.ini, settings, ResizeOverlay
+IniRead, OverlayWidth, settings.ini, settings, OverlayWidth
+IniRead, OverlayHeight, settings.ini, settings, OverlayHeight
+IniRead, FontColor, settings.ini, settings, FontColor
+IniRead, FontSize, settings.ini, settings, FontSize
+IniRead, FontType, settings.ini, settings, FontType
+
+;=== Create Start GUI =======================================================
+Gui, 1:Default
+Gui, Font, s10, Segoe UI
 Gui, Add, CheckBox, vLog, Enable logging to file?
-Gui, Add, Button, gSend, Run ahkmon
-Gui, Show, w200 h75
+Gui, Add, CheckBox, vOverlay, Enable overlay?
+Gui, Add, CheckBox, vResizeOverlay, Allow resize of overlay?
+Gui, Add, Text, vOverlayWidthInfo, Initial overlay width:
+Gui, Add, Edit
+Gui, Add, UpDown, vOverlayWidth Range100-2000, 975
+Gui, Add, Text, vOverlayHeightInfo, Initial overlay height:
+Gui, Add, Edit
+Gui, Add, UpDown, vOverlayHeight Range100-2000, 200
+Gui, Add, Text, vFontColorInfo, Overlay font color:
+Gui, Add, ComboBox, vFontColor, White|Yellow|Red|Green|Blue
+Gui, Add, Text,, Overlay font size:
+Gui, Add, Edit
+Gui, Add, UpDown, vFontSize Range8-30, 14
+Gui, Add, Text, vFontInfo, Select a font or enter a custom font available`n on your system to use with the overlay:
+Gui, Add, ComboBox, vFontType, Arial|Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
+Gui, Add, Button, gSave, Run ahkmon
+
+;=== Apply Start GUI settings ===============================================
+If (Log != "")
+  GuiControl,, Log, %Log%
+If (Overlay != "")
+  GuiControl,, Overlay, %Overlay%
+If (OverlayWidth != "")
+  GuiControl,, OverlayWidth, %OverlayWidth%
+If (OverlayHeight != "")
+  GuiControl,, OverlayHeight, %OverlayHeight%
+If (ResizeOverlay != "")
+  GuiControl,, ResizeOverlay, %ResizeOverlay%
+If (FontColor != "")
+  GuiControl, Text, FontColor, %FontColor%
+If (FontSize != "")
+  GuiControl,, FontSize, %FontSize%
+If (FontType != "")
+  GuiControl, Text, FontType, %FontType%
+Gui, Show, Autosize
 Return
 
 GuiEscape:
 GuiClose:
-    ExitApp
+  ExitApp
 
-Send:
-Gui, Submit, Hide
+;=== Save Start GUI settings to ini ==========================================
+Save:
+  Gui, Submit, Hide
+  IniWrite, %Log%, settings.ini, settings, Log
+  IniWrite, %RequireFocus%, settings.ini, settings, RequireFocus
+  IniWrite, %Overlay%, settings.ini, settings, Overlay
+  IniWrite, %OverlayWidth%, settings.ini, settings, OverlayWidth
+  IniWrite, %OverlayHeight%, settings.ini, settings, OverlayHeight
+  IniWrite, %ResizeOverlay%, settings.ini, settings, ResizeOverlay
+  IniWrite, %FontColor%, settings.ini, settings, FontColor
+  IniWrite, %FontSize%, settings.ini, settings, FontSize
+  IniWrite, %FontType%, settings.ini, settings, FontType
 
-OnClipboardChange("ClipChanged")
-return
+;=== Open DQDialog ===========================================================
+openDQDialog()
 
-ClipChanged(Type) {
-    if WinActive("ahk_exe DQXGame.exe") {
-        Process, Exist, DeepL.exe
-
-        if ErrorLevel {
-            Process, Exist, DQXGame.exe
-
-            if ErrorLevel {
-                Process, Exist, DQ10Dialog.exe
-
-                if ErrorLevel {
-
-                    ; Focus DeepL window
-                    WinActivate, ahk_exe DeepL.exe
-                    WinWaitActive, ahk_exe DeepL.exe
-
-                    ; Get the full window's position as user could have resized
-                    WinGetPos, X, Y, W, H, DeepL
-
-                    ; Take WxH and get new coords by % for the translated window.
-                    tNewW := (W * .50)
-                    tNewH := (H * .75)
-
-                    ; Take WxH and get new coords by % for the copied window.
-                    cNewW := (W * .20)
-                    cNewH := (H * .20)
-
-                    ; Virtually click the mouse in the DeepL translation window 
-                    ; (don't physically move it)
-                    SetControlDelay -1
-                    ControlClick x%cNewW% y%cNewH%, ahk_exe DeepL.exe
-
-                    ; Remove foreign character from clipboard
-                    Clipboard := StrReplace(Clipboard, "「","")
-
-                    ; Remove any existing text in the translation box before
-                    ; pressing Ctrl+V to paste
-                    Send, {Ctrl Down}a{Ctrl Up}
-                    Send, {BackSpace}
-                    Send, {Ctrl Down}v{Ctrl Up}
-                    Sleep 250
-
-                    ; Write clipboard contents to file if logging is enabled
-                    LogToFile("dq_dialog_jp.txt")
-
-                    ; DeepL sometimes pauses for a bit when you paste, so give it
-                    ; time to realize what we just did so the paste gets into the
-                    ; box. Have also seen incomplete pastes when tuning this lower
-                    Sleep 750
-
-                    ; If logging is enabled, also log the translated text to file
-                    Global Log
-                    if (Log = 1) {
-
-	                    ; Get the full window's position as user could have resized
-	                    WinGetPos, X, Y, W, H, DeepL
-
-	                    ; Take WxH and get new coords by % for the translated window.
-	                    tNewW := (W * .50)
-	                    tNewH := (H * .70)
-
-	                    ; Click in the translated box and copy to clipboard + log
-	                    SetControlDelay -1
-	                    ControlClick x%tNewW% y%tNewH%, ahk_exe DeepL.exe
-                        Send, {Ctrl Down}a{Ctrl Up}
-                        Sleep 50
-                        Send, {Ctrl Down}c{Ctrl Up}
-                        Sleep 50
-                        Send, {Tab}{Tab}
-                        LogToFile("dq_dialog_translated.txt")
-                    }
-                    
-                    ; Re-focus DQX Window
-                    WinActivate, ahk_exe DQXGame.exe
-                }
-            }
-        }
-    }
+;=== Open overlay if enabled =================================================
+if (Overlay = 1) {
+  overlayShow=1
+  Gui, 2:Default
+  Gui, color, 000000  ; Sets GUI background to black
+  Gui, Font, s%FontSize% c%FontColor%, %FontType%
+  Gui, Add, Text, vClip w800 h200, %Clipboard%
+  Gui, Show, w%OverlayWidth% h%OverlayHeight%
+  if (ResizeOverlay = 1) {
+      Gui -caption +alwaysontop -Theme +Resize
+  }
+  else {
+    Gui -caption +alwaysontop -Theme
+  }
+  OnMessage(0x201,"WM_LBUTTONDOWN")  ; Allows dragging the window
 }
 
-LogToFile(logFile) {
-    Global Log
-    if (Log = 1) {
-        FormatTime, TimeString,, [dd-MM-yyyy] [HH:mm]
-        FileAppend, %TimeString% %clipboard%`n`n, %logfile%, UTF-16
-    }
+;=== Miscellaneous functions =================================================
+WM_LBUTTONDOWN(wParam,lParam,msg,hwnd){
+  PostMessage, 0xA1, 2
+}
+
+;=== Start Clipboard listen ==================================================
+OnClipboardChange("clipChanged")
+
+;=== Allows toggling the overlay on and off ==================================
+f12::
+{
+  if (overlayShow = 1) {
+    Gui, 2:Show
+    overlayShow = 0
+  }
+  else if (overlayShow = 0) {
+    Gui, 2:Hide
+    overlayShow = 1
+  }
 }
