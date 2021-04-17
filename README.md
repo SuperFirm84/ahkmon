@@ -15,3 +15,4 @@ Features:
 - Set the overlay's font color. You can type other colors, but I don't guarantee they will work.
 - Set the font size of the overlay
 - Set the font type of the overlay. If you want to use a different font than is available on the drop down, you can manually type a font that's on your system and the overlay should pick it up.
+- Able to hide the overlay by hitting F12. On first launch, you need to tap F12 twice, then it'll behave like normal.
