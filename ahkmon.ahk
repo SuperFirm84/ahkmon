@@ -19,6 +19,8 @@ IniRead, FontType, settings.ini, settings, FontType
 ;=== Create Start GUI =======================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
+Gui, Add, Text,, ahkmon: Automate your DQX text translation.
+Gui, Add, Text, y+2 cBlue gLink1, (Ctrl+Click) Join the unofficial Dragon Quest X Discord!
 Gui, Add, CheckBox, vLog, Enable logging to file?
 Gui, Add, CheckBox, vOverlay, Enable overlay?
 Gui, Add, CheckBox, vResizeOverlay, Allow resize of overlay?
@@ -57,6 +59,10 @@ If (FontType != "")
 Gui, Show, Autosize
 Return
 
+Link1:
+  Run https://discord.gg/UFaUHBxKMY
+  Return
+
 GuiEscape:
 GuiClose:
   ExitApp
@@ -65,7 +71,6 @@ GuiClose:
 Save:
   Gui, Submit, Hide
   IniWrite, %Log%, settings.ini, settings, Log
-  IniWrite, %RequireFocus%, settings.ini, settings, RequireFocus
   IniWrite, %Overlay%, settings.ini, settings, Overlay
   IniWrite, %OverlayWidth%, settings.ini, settings, OverlayWidth
   IniWrite, %OverlayHeight%, settings.ini, settings, OverlayHeight
@@ -80,23 +85,32 @@ openDQDialog()
 ;=== Open overlay if enabled =================================================
 if (Overlay = 1) {
   overlayShow=1
+  adjustedOverlayWidth := OverlayWidth
   Gui, 2:Default
   Gui, color, 000000  ; Sets GUI background to black
   Gui, Font, s%FontSize% c%FontColor%, %FontType%
-  Gui, Add, Text, vClip w800 h200, %Clipboard%
+  Gui, Add, Edit, +wrap readonly -E0x200 vClip w%adjustedOverlayWidth% h%OverlayHeight%, %Clipboard%
   Gui, Show, w%OverlayWidth% h%OverlayHeight%
   if (ResizeOverlay = 1) {
-      Gui -caption +alwaysontop -Theme +Resize
+      Gui -caption +alwaysontop -Theme -DPIScale +Resize -MaximizeBox
   }
   else {
-    Gui -caption +alwaysontop -Theme
+    Gui -caption +alwaysontop -Theme -DPIScale
   }
   OnMessage(0x201,"WM_LBUTTONDOWN")  ; Allows dragging the window
+  OnMessage(0x47, "WM_WINDOWPOSCHANGED")  ; When left mouse click down is detected
 }
 
 ;=== Miscellaneous functions =================================================
 WM_LBUTTONDOWN(wParam,lParam,msg,hwnd){
   PostMessage, 0xA1, 2
+}
+
+WM_WINDOWPOSCHANGED() {
+    Gui, 2:Default
+    WinGetPos,,,newOverlayWidth,newOverlayHeight, A
+    adjustedOverlayWidth := newOverlayWidth -50
+    GuiControl, MoveDraw, Clip, w%adjustedOverlayWidth% h%newOverlayHeight%
 }
 
 ;=== Start Clipboard listen ==================================================
