@@ -4,7 +4,6 @@
 #Include <clipChanged>
 #Include <logToFile>
 #Include <openDQDialog>
-#Include <googleTranslate>
 SendMode Input
 DetectHiddenWindows, On
 
