@@ -4,7 +4,9 @@
 #Include <clipChanged>
 #Include <logToFile>
 #Include <openDQDialog>
+#Include <googleTranslate>
 SendMode Input
+DetectHiddenWindows, On
 
 ;=== Load Start GUI settings from file ======================================
 IniRead, Log, settings.ini, settings, Log
@@ -20,11 +22,17 @@ IniRead, FontType, settings.ini, settings, FontType
 ;=== Create Start GUI =======================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
+Gui, Add, Tab3,, General|Overlay Settings
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Text, y+2 cBlue gLink1, (Ctrl+Click) Join the unofficial Dragon Quest X Discord!
 Gui, Add, CheckBox, vLog, Enable logging to file?
 Gui, Add, CheckBox, vRequireFocus, Require DQX window to be focused for auto translate?
 Gui, Add, CheckBox, vOverlay, Enable overlay? (Toggle with F12)
+Gui, Add, Picture, w151 h138, imgs/slime.png
+Gui, Add, Button, gSave, Run ahkmon
+
+;; Overlay settings tab
+Gui, Tab, Overlay Settings
 Gui, Add, CheckBox, vResizeOverlay, Allow resize of overlay?
 Gui, Add, Text, vOverlayWidthInfo, Initial overlay width:
 Gui, Add, Edit
@@ -39,7 +47,6 @@ Gui, Add, Edit
 Gui, Add, UpDown, vFontSize Range8-30, 14
 Gui, Add, Text, vFontInfo, Select a font or enter a custom font available`n on your system to use with the overlay:
 Gui, Add, ComboBox, vFontType, Arial|Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
-Gui, Add, Button, gSave, Run ahkmon
 
 ;=== Set defaults and apply Start GUI settings ==============================
 If (Log = "ERROR") {
@@ -124,6 +131,7 @@ Save:
 Global RequireFocus
 Global Overlay
 Global Log
+Global TranslateType
 
 ;=== Open DQDialog ===========================================================
 openDQDialog()
