@@ -1,4 +1,15 @@
 ClipChanged(Type) {
+  if (RequireFocus = 0) {
+    keepGoing = 1
+  }
+  
+  if (RequireFocus = 1) {
+    if WinActive("ahk_exe DQXGame.exe") {
+      keepGoing = 1
+    }
+  }
+
+  if (keepGoing = 1) {
     Process, Exist, DeepL.exe
 
     if ErrorLevel {
@@ -45,9 +56,8 @@ ClipChanged(Type) {
           ;; DeepL sometimes pauses for a bit when you paste, so give it
           ;; time to realize what we just did so the paste gets into the
           ;; box. Have also seen incomplete pastes when tuning this lower
-          Sleep 750
-          Global Overlay
-          Global Log
+          Sleep 500
+
           if ((Overlay = 1) or (Log = 1)) {
             ;; Get the full window's position as user could have resized
             WinGetPos, X, Y, W, H, DeepL
@@ -79,4 +89,5 @@ ClipChanged(Type) {
         }
       }
     }
+  }
 }
