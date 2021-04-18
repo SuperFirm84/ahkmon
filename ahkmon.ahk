@@ -35,10 +35,10 @@ Gui, Tab, Overlay Settings
 Gui, Add, CheckBox, vResizeOverlay, Allow resize of overlay?
 Gui, Add, Text, vOverlayWidthInfo, Initial overlay width:
 Gui, Add, Edit
-Gui, Add, UpDown, vOverlayWidth Range100-2000, 975
+Gui, Add, UpDown, vOverlayWidth Range100-2000, 930
 Gui, Add, Text, vOverlayHeightInfo, Initial overlay height:
 Gui, Add, Edit
-Gui, Add, UpDown, vOverlayHeight Range100-2000, 200
+Gui, Add, UpDown, vOverlayHeight Range100-2000, 150
 Gui, Add, Text, vFontColorInfo, Overlay font color:
 Gui, Add, ComboBox, vFontColor, White|Yellow|Red|Green|Blue
 Gui, Add, Text,, Overlay font size:
@@ -164,7 +164,7 @@ WM_LBUTTONDOWN(wParam,lParam,msg,hwnd) {
 WM_WINDOWPOSCHANGED() {
     Gui, 2:Default
     WinGetPos,,,newOverlayWidth,newOverlayHeight, A
-    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-51 "h" newOverlayHeight
+    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-51 "h" newOverlayHeight-20
 }
 
 ;=== Start Clipboard listen ==================================================
@@ -184,7 +184,7 @@ f12::
     Gui, Show
     Sleep 100
     WinGetPos,,,newOverlayWidth,newOverlayHeight, A
-    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-51 "h" newOverlayHeight
+    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-51 "h" newOverlayHeight-20
     WinActivate, ahk_exe DQXGame.exe
     overlayShow = 1
   }
