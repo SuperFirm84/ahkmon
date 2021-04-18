@@ -46,7 +46,7 @@ ClipChanged(Type) {
           ;; Remove any existing text in the translation box before
           ;; pressing Ctrl+V to paste
           Send, {Ctrl Down}a{Ctrl Up}
-          Send, {BackSpace}
+          Sleep 50
           Send, {Ctrl Down}v{Ctrl Up}
           Sleep 250
 
@@ -56,7 +56,7 @@ ClipChanged(Type) {
           ;; DeepL sometimes pauses for a bit when you paste, so give it
           ;; time to realize what we just did so the paste gets into the
           ;; box. Have also seen incomplete pastes when tuning this lower
-          Sleep 500
+          Sleep 750
 
           if ((Overlay = 1) or (Log = 1)) {
             ;; Get the full window's position as user could have resized
@@ -75,6 +75,7 @@ ClipChanged(Type) {
             ;; wait up to 1 second for the system to realize the clipboard
             ;; contents have changed.
             Clipboard := ""
+            Sleep 50
             Send, {Ctrl Down}a{Ctrl Up}
             Sleep 50
             Send, {Ctrl Down}c{Ctrl Up}
