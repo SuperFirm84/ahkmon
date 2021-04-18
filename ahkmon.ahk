@@ -142,10 +142,10 @@ if (Overlay = 1) {
   OnMessage(0x47, "WM_WINDOWPOSCHANGED")  ; When left mouse click down is detected
 
   if (ResizeOverlay = 1) {
-    Gui -caption +alwaysontop -Theme -DPIScale +ToolWindow +Resize -MaximizeBox
+    Gui, -caption +alwaysontop -Theme -DPIScale +ToolWindow -Border +Resize -MaximizeBox
   }
   else {
-    Gui -caption +alwaysontop -Theme -DPIScale +ToolWindow
+    Gui -caption +alwaysontop -Theme -DPIScale +ToolWindow -Border
   }
 }
 
@@ -167,12 +167,17 @@ OnClipboardChange("clipChanged")
 f12::
 {
   if (overlayShow = 1) {
-    Gui, 2:Show
+    Gui, 2:Default
+    Gui, Hide
     WinActivate, ahk_exe DQXGame.exe
     overlayShow = 0
   }
-  else if (overlayShow = 0) {
-    Gui, 2:Hide
+  else {
+    Gui, 2:Default
+    Gui, Show
+    Sleep 100
+    WinGetPos,,,newOverlayWidth,newOverlayHeight, A
+    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-51 "h" newOverlayHeight
     WinActivate, ahk_exe DQXGame.exe
     overlayShow = 1
   }

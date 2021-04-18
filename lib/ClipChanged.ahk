@@ -46,9 +46,7 @@ ClipChanged(Type) {
           ;; Remove any existing text in the translation box before
           ;; pressing Ctrl+V to paste
           Send, {Ctrl Down}a{Ctrl Up}
-          Sleep 50
           Send, {Ctrl Down}v{Ctrl Up}
-          Sleep 250
 
           ;; Write clipboard contents to file if logging is enabled
           logToFile("dq_dialog_jp.txt")
@@ -56,7 +54,7 @@ ClipChanged(Type) {
           ;; DeepL sometimes pauses for a bit when you paste, so give it
           ;; time to realize what we just did so the paste gets into the
           ;; box. Have also seen incomplete pastes when tuning this lower
-          Sleep 750
+          Sleep 1000
 
           if ((Overlay = 1) or (Log = 1)) {
             ;; Get the full window's position as user could have resized
@@ -68,14 +66,14 @@ ClipChanged(Type) {
 
             ;; Click in the translated box and copy to clipboard + log
             SetControlDelay -1
-            ControlClick x%tNewW% y%tNewH%, ahk_exe DeepL.exe
+            ControlClick x%cNewW% y%cNewH%, ahk_exe DeepL.exe
+            Send, {Tab}
 
             ;; Clear the clipboard. We do this because logToFile sometimes
             ;; pastes the Japanese text into the translated log file. We
             ;; wait up to 1 second for the system to realize the clipboard
             ;; contents have changed.
             Clipboard := ""
-            Sleep 50
             Send, {Ctrl Down}a{Ctrl Up}
             Sleep 50
             Send, {Ctrl Down}c{Ctrl Up}
