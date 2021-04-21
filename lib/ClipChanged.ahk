@@ -13,9 +13,9 @@ ClipChanged(Type) {
     Process, Exist, DeepL.exe
 
     if ErrorLevel {
-      ;Process, Exist, DQXGame.exe
+      Process, Exist, DQXGame.exe
 
-      ;if ErrorLevel {
+      if ErrorLevel {
         Process, Exist, DQ10Dialog.exe
 
         if ErrorLevel {
@@ -67,9 +67,9 @@ ClipChanged(Type) {
           }
           
           ; Re-focus DQX Window
-          ;WinActivate, ahk_exe DQXGame.exe
+          WinActivate, ahk_exe DQXGame.exe
         }
-    ;  }
+      }
     }
   }
 }
