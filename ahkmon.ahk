@@ -9,128 +9,89 @@ SendMode Input
 DetectHiddenWindows, On
 
 ;=== Load Start GUI settings from file ======================================
-IniRead, Log, settings.ini, settings, Log
-IniRead, Overlay, settings.ini, settings, Overlay
-IniRead, RequireFocus, settings.ini, settings, RequireFocus
-IniRead, OCR, settings.ini, settings, OCR
-IniRead, ResizeOverlay, settings.ini, settings, ResizeOverlay
-IniRead, OverlayWidth, settings.ini, settings, OverlayWidth
-IniRead, OverlayHeight, settings.ini, settings, OverlayHeight
-IniRead, FontColor, settings.ini, settings, FontColor
-IniRead, FontSize, settings.ini, settings, FontSize
-IniRead, FontType, settings.ini, settings, FontType
-IniRead, OverlayPosX, settings.ini, settings, OverlayPosX
-IniRead, OverlayPosY, settings.ini, settings, OverlayPosY
+IniRead, Log, settings.ini, settings, Log, 0
+IniRead, Overlay, settings.ini, settings, Overlay, 1
+IniRead, RequireFocus, settings.ini, settings, RequireFocus, 0
+IniRead, OCR, settings.ini, settings, OCR, 0
+IniRead, ResizeOverlay, settings.ini, settings, ResizeOverlay, 0
+IniRead, OverlayWidth, settings.ini, settings, OverlayWidth, 930
+IniRead, OverlayHeight, settings.ini, settings, OverlayHeight, 150
+IniRead, OverlayColor, settings.ini, settings, OverlayColor, 000000
+IniRead, FontColor, settings.ini, settings, FontColor, White
+IniRead, FontSize, settings.ini, settings, FontSize, 16
+IniRead, FontType, settings.ini, settings, FontType, Arial
+IniRead, OverlayPosX, settings.ini, settings, OverlayPosX, 0
+IniRead, OverlayPosY, settings.ini, settings, OverlayPosY, 0
 
 ;=== Create Start GUI =======================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
-Gui, Add, Tab3,, General|Overlay Settings|OCR Notice
+Gui, Add, Tab3,, General|Overlay Settings
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
-Gui, Add, Text, y+2 cBlue gLink1, (Ctrl+Click) Join the unofficial Dragon Quest X Discord!
-Gui, Add, CheckBox, vLog, Enable logging to file?
-Gui, Add, CheckBox, vRequireFocus, Require DQX window to be focused for auto translate?
-Gui, Add, CheckBox, vOverlay, Enable overlay? (Toggle with F12)
-Gui, Add, CheckBox, vOCR, Enable Optical Character Recognition (OCR)? (Ctrl+R)
-Gui, Add, Picture, w151 h138, imgs/slime.png
+Gui, Add, Link, y+2 vDiscord, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
+Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
+Gui, Add, CheckBox, vRequireFocus Checked%RequireFocus%, Require DQX window to be focused for auto translate?
+Gui, Add, CheckBox, vOverlay Checked%Overlay%, Enable overlay? (Toggle with F12)
+Gui, Add, CheckBox, vOCR Checked%OCR%, Enable Optical Character Recognition (OCR)? (Ctrl+Q)
+Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
 Gui, Add, Button, gSave, Run ahkmon
 
 ;; Overlay settings tab
 Gui, Tab, Overlay Settings
 Gui, Add, Text,, F12 will turn the overlay on/off.`n - Alt+F12 will save the location of the overlay on next start.`n - Make sure you click on the overlay before you press Alt+F12!
-Gui, Add, CheckBox, vResizeOverlay, Allow resize of overlay?
+Gui, Add, CheckBox, vResizeOverlay Checked%ResizeOverlay%, Allow resize of overlay?
+Gui, Add, Text, vOverlayColorInfo, Overlay background color (use hex color codes):
+Gui, Add, ComboBox, vOverlayColor, %OverlayColor%||
 Gui, Add, Text, vOverlayWidthInfo, Initial overlay width:
 Gui, Add, Edit
-Gui, Add, UpDown, vOverlayWidth Range100-2000, 930
+Gui, Add, UpDown, vOverlayWidth Range100-2000, %OverlayWidth%
 Gui, Add, Text, vOverlayHeightInfo, Initial overlay height:
 Gui, Add, Edit
-Gui, Add, UpDown, vOverlayHeight Range100-2000, 150
+Gui, Add, UpDown, vOverlayHeight Range100-2000, %OverlayHeight%
 Gui, Add, Text, vFontColorInfo, Overlay font color:
-Gui, Add, ComboBox, vFontColor, White|Yellow|Red|Green|Blue
+Gui, Add, ComboBox, vFontColor, %FontColor%||Yellow|Red|Green|Blue|Black|Gray|Maroon|Purple|Fuchsia|Lime|Olive|Navy|Teal|Aqua
 Gui, Add, Text,, Overlay font size:
 Gui, Add, Edit
-Gui, Add, UpDown, vFontSize Range8-30, 14
+Gui, Add, UpDown, vFontSize Range8-30, %FontSize%
 Gui, Add, Text, vFontInfo, Select a font or enter a custom font available`n on your system to use with the overlay:
-Gui, Add, ComboBox, vFontType, Arial|Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
+Gui, Add, ComboBox, vFontType, %FontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
 
-;; OCR Notice
-Gui, Tab, OCR Notice
-Gui, Add, Text,, Optical Character Recognition (OCR) allows you to`ncapture an image with a hotkey and translate the`ntext from the image. This method is reportedly`nmore accurate than tesseract, but is far from perfect.`n`nThe method used with this program can be triggered with`nCtrl+R. Click and drag over the text you want to translate and`n it'll show up in both DeepL and the overlay.
+;; Tooltips
+Log_TT := "Logs both pre and post translations to separate`nlog files for viewing."
+RequireFocus_TT := "Checked: Auto translation will only work`nwhen DQX is the focused window.`nUnchecked: Auto translation will function regardless`n of DQX being the focused window or not."
+Overlay_TT := "Enables a draggable box to display the translated text.`nConfigure behavior in the 'Overlay Settings' tab."
+OCR_TT := "Optical Character Recognition (OCR) allows you to`ncapture an image with a hotkey and translate the`ntext from the image. This method is reportedly`nmore accurate than tesseract, but is far from perfect.`n`nThe method used with this program can be triggered with`nCtrl+R. Click and drag over the text you want to translate and`n it'll show up in both DeepL and the overlay."
+ResizeOverlay_TT := "Checked: Allows you to stretch the overlay`nto your preferred size.`nUnchecked:A fixed overlay with the size configured with`n'Initial overlay width' and 'Initial overlay height'."
 
-;=== Set defaults and apply Start GUI settings ==============================
-If (Log = "ERROR") {
-  GuiControl,, Log, 1
-} else {
-  GuiControl,, Log, %Log%
-}
-
-If (RequireFocus = "ERROR") {
-  GuiControl,, RequireFocus, 1
-} else {
-  GuiControl,, RequireFocus, %RequireFocus%
-}
-
-If (OCR = "ERROR") {
-  GuiControl,, OCR, 0
-} else {
-  GuiControl,, OCR, %OCR%
-}
-
-If (Overlay = "ERROR") {
-  GuiControl,, Overlay, 1
-} else {
-  GuiControl,, Overlay, %Overlay%
-}
-
-If (ResizeOverlay = "ERROR") {
-  GuiControl,, ResizeOverlay, 1
-} else {
-  GuiControl,, ResizeOverlay, %ResizeOverlay%
-}
-
-If (OverlayWidth = "ERROR") {
-  GuiControl,, OverlayWidth, 950
-} else {
-  GuiControl,, OverlayWidth, %OverlayWidth%
-}
-
-If (OverlayHeight = "ERROR") {
-  GuiControl,, OverlayHeight, 300
-} else {
-  GuiControl,, OverlayHeight, %OverlayHeight%
-}
-
-If (FontColor = "ERROR") {
-  GuiControl, Text, FontColor, White
-} else {
-  GuiControl, Text, FontColor, %FontColor%
-}
-
-If (FontSize = "ERROR") {
-  GuiControl,, FontSize, 12
-} else {
-  GuiControl,, FontSize, %FontSize%
-}
-
-If (FontType = "ERROR") {
-  GuiControl, Text, FontType, Arial
-} else {
-  GuiControl, Text, FontType, %FontType%
-}
-
-If (OverlayPosX = "ERROR")
-  OverlayPosX = 0
-
-If (OverlayPosY = "ERROR")
-  OverlayPosY = 0
-
+;;=== Misc Start GUI ========================================================
+;; Used for tooltip popups in the Start GUI
 Gui, Show, Autosize
+OnMessage(0x0200, "WM_MOUSEMOVE")
 Return
 
-Link1:
-  Run https://discord.gg/UFaUHBxKMY
-  Return
+WM_MOUSEMOVE() {
+  static CurrControl, PrevControl, _TT  ; _TT is kept blank for use by the ToolTip command below
+  CurrControl := A_GuiControl
+  if (CurrControl != PrevControl and not InStr(CurrControl, " ")) {
+    ToolTip  ; Turn off any previous tooltip
+    SetTimer, DisplayToolTip, 10
+    PrevControl := CurrControl
+  }
+  return
 
+  DisplayToolTip:
+    SetTimer, DisplayToolTip, Off
+    ToolTip % %CurrControl%_TT
+    SetTimer, RemoveToolTip, 60000
+    return
+
+  RemoveToolTip:
+    SetTimer, RemoveToolTip, Off
+    ToolTip
+    return
+}
+
+;; What to do when the app is gracefully closed
 GuiEscape:
 GuiClose:
   ExitApp
@@ -144,6 +105,7 @@ Save:
   IniWrite, %OCR%, settings.ini, settings, OCR
   IniWrite, %OverlayWidth%, settings.ini, settings, OverlayWidth
   IniWrite, %OverlayHeight%, settings.ini, settings, OverlayHeight
+  IniWrite, %OverlayColor%, settings.ini, settings, OverlayColor
   IniWrite, %ResizeOverlay%, settings.ini, settings, ResizeOverlay
   IniWrite, %FontColor%, settings.ini, settings, FontColor
   IniWrite, %FontSize%, settings.ini, settings, FontSize
@@ -154,16 +116,18 @@ Global RequireFocus
 Global Overlay
 Global Log
 Global TranslateType
+Global FontType
+Global FontColor
 
 ;=== Open DQDialog ===========================================================
 openDQDialog()
 
 ;=== Open overlay if enabled =================================================
 if (Overlay = 1) {
-  overlayShow=1
-  alteredOverlayWidth := OverlayWidth - 30
+  overlayShow = 1
+  alteredOverlayWidth := OverlayWidth - 2
   Gui, 2:Default
-  Gui, color, 000000  ; Sets GUI background to black
+  Gui, Color, %OverlayColor%  ; Sets GUI background to black
   Gui, Font, s%FontSize% c%FontColor%, %FontType%
   Gui, Add, Edit, +wrap readonly -E0x200 vClip w%alteredOverlayWidth% h%OverlayHeight%, %Clipboard%
   Gui, Show, % "w" OverlayWidth "h" OverlayHeight "x" OverlayPosX "y" OverlayPosY
@@ -187,7 +151,9 @@ WM_LBUTTONDOWN(wParam,lParam,msg,hwnd) {
 WM_WINDOWPOSCHANGED() {
     Gui, 2:Default
     WinGetPos,newOverlayX,newOverlayY,newOverlayWidth,newOverlayHeight, A
-    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-51 "h" newOverlayHeight-20
+    ; Prefer redrawing on move rather than at the end as text gets distorted otherwise
+    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-31 "h" newOverlayHeight-38
+
 }
 
 ;=== Start Clipboard listen ==================================================
@@ -207,12 +173,11 @@ f12::
     Gui, Show
     Sleep 100
     WinGetPos,,,newOverlayWidth,newOverlayHeight, A
-    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-51 "h" newOverlayHeight-20
+    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-31 "h" newOverlayHeight-38
     WinActivate, ahk_exe DQXGame.exe
     overlayShow = 1
   }
 }
-
 
 ;=== Saves location of dialog box ============================================
 !f12::
@@ -226,10 +191,9 @@ f12::
 }
 
 ;=== Activates OCR capture ===================================================
-^r::
+^Q::
 {
   if (OCR = 1) {
     screenOCR()
-    Return
   }
 }

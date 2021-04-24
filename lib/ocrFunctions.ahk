@@ -12,6 +12,19 @@
 ;;
 ;; You do NOT have to set Japanese as your primary language for your system
 
+SetWinDelay, 0
+
+screenOCR() {
+   hBitmap := HBitmapFromScreen(GetArea()*)
+   pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
+   DllCall("DeleteObject", "Ptr", hBitmap)
+   Global translatedText
+   translatedText := ocr(pIRandomAccessStream, "ja")
+   if (translatedText != "")
+     Clipboard := StrReplace(translatedText, "`n", " ")
+   Return
+}
+
 GetArea() {
    area := []
    StartSelection(area)
@@ -76,7 +89,7 @@ ReplaceSystemCursors(IDC = "")
 CreateSelectionGui() {
    Gui, Selection:Default
    Gui, New, +hwndhGui +Alwaysontop -Caption +LastFound +ToolWindow +E0x20 -DPIScale
-   WinSet, Transparent, 130
+   WinSet, Transparent, 100
    Gui, Color, FFC800
    Return hGui
 }
@@ -87,15 +100,13 @@ LowLevelMouseProc(nCode, wParam, lParam) {
         , timer := Func("LowLevelMouseProc").Bind("timer", "", "")
    
    if (nCode = "timer") {
-      while coords[1] {
-         point := coords.RemoveAt(1)
-         mouseX := point[1], mouseY := point[2]
-         x := startMouseX < mouseX ? startMouseX : mouseX
-         y := startMouseY < mouseY ? startMouseY : mouseY
-         w := Abs(mouseX - startMouseX)
-         h := Abs(mouseY - startMouseY)
-         try Gui, %hGUi%: Show, x%x% y%y% w%w% h%h% NA
-      }
+      point := coords[1]
+      mouseX := point[1], mouseY := point[2]
+      x := startMouseX < mouseX ? startMouseX : mouseX
+      y := startMouseY < mouseY ? startMouseY : mouseY
+      w := Abs(mouseX - startMouseX)
+      h := Abs(mouseY - startMouseY)
+      try Gui, %hGUi%: Show, x%x% y%y% w%w% h%h% NA
    }
    else {
       (!hGui && hGui := A_EventInfo)
@@ -108,8 +119,8 @@ LowLevelMouseProc(nCode, wParam, lParam) {
             startMouseX := mouseX
             startMouseY := mouseY
          }
-         coords.Push([mouseX, mouseY])
-         SetTimer, % timer, -10
+         coords.1 := [mouseX, mouseY]
+         SetTimer, % timer, -0
       }
       Return DllCall("CallNextHookEx", Ptr, 0, Int, nCode, UInt, wParam, Ptr, lParam)
    }
@@ -221,8 +232,8 @@ ocr(file, lang := "FirstFromAvailableLanguages")
       }
       if (OcrEngine = 0)
       {
-         msgbox The language pack for %lang% is not installed. Install at https://www.microsoft.com/store/productId/9N1W692FV4S1. This has been copied to your clipboard. App will exit.
-         Clipboard := "https://www.microsoft.com/store/productId/9N1W692FV4S1"
+         msgbox The language pack for %lang% is not installed. Browser will now open site to download. App will exit.
+         Run, https://www.microsoft.com/store/productId/9N1W692FV4S1
          ExitApp
       }
       CurrentLanguage := lang
@@ -320,15 +331,4 @@ WaitForAsync(ByRef Object)
    DllCall(NumGet(NumGet(Object+0)+8*A_PtrSize), "ptr", Object, "ptr*", ObjectResult)   ; GetResults
    ObjRelease(Object)
    Object := ObjectResult
-}
-
-screenOCR() {
-   hBitmap := HBitmapFromScreen(GetArea()*)
-   pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
-   DllCall("DeleteObject", "Ptr", hBitmap)
-   translatedText := ocr(pIRandomAccessStream, "ja")
-   if (translatedText != "") {
-      Clipboard := StrReplace(translatedText, "`n", " ")
-   }
-   Return
 }

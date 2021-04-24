@@ -45,24 +45,32 @@ ClipChanged(Type) {
           ;; If overlay or log is enabled
           if ((Overlay = 1) or (Log = 1)) {
 
+            ;; Clear clipboard so we know when it changes
             Clipboard =
 
             Loop {
               
+              ;; If DeepL takes too long to return a translation, time the attempt out.
               if (A_Index > 25) {
-                GuiControl,2:Text, Clip, "DeepL did not return a translation after 10 seconds."
+                Gui, 2:Default
+                Gui, Font, cYellow Bold, %FontType%
+                GuiControl, Font, Clip
+                GuiControl, Text, Clip, DeepL did not return a translation in time.
+                Sleep 2000
+                Gui, Font, c%FontColor%, %FontType%
+                GuiControl, Font, Clip
                 break
               }
 
-              loading .= "."
-              GuiControl,2:Text, Clip, %loading%
+              loading .= "."  ; Neat loading bar to let the user know translation is happening
+              GuiControl, 2:Text, Clip, %loading%
               SetControlDelay -1
               ControlClick, Chrome_WidgetWin_01, DeepL,,,, NA x%cNewW% y%cNewH%
               ControlSend, Chrome_WidgetWin_01, {Tab}{Tab}{Enter}, DeepL
               ClipWait .4
             } Until Clipboard
 
-            GuiControl,2:Text, Clip, %Clipboard%
+            GuiControl, 2:Text, Clip, %Clipboard%
             logToFile("dq_dialog_translated.txt")
           }
           
