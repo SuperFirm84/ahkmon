@@ -17,9 +17,9 @@ ClipChanged(Type) {
       Process, Exist, DeepL.exe
 
       if ErrorLevel {
-        ;Process, Exist, DQXGame.exe
+        Process, Exist, DQXGame.exe
 
-        ;if ErrorLevel {
+        if ErrorLevel {
           Process, Exist, DQ10Dialog.exe
 
           if ErrorLevel {
@@ -61,7 +61,7 @@ ClipChanged(Type) {
                   GuiControl, Font, Clip
                   GuiControl, Text, Clip, DeepL did not return a translation in time.
                   Sleep 2000
-                  Gui, Font, c%FontColor%, %FontType%
+                  Gui, Font, c%FontColor% Norm, %FontType%
                   GuiControl, Font, Clip
                   break
                 }
@@ -78,10 +78,15 @@ ClipChanged(Type) {
               logToFile("dq_dialog_translated.txt")
             }
             
-            ; Re-focus DQX Window
+            ;; Re-focus DQX Window
             WinActivate, ahk_exe DQXGame.exe
+
+            ;; Some users were experiencing infinite clipboard copy loops on slower machines,
+            ;; so this sleep stops that from happening. 
+            Sleep 300
+            Return
           }
-        ;}
+        }
       }
     }
   }

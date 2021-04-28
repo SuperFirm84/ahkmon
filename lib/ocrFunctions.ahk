@@ -21,7 +21,9 @@ screenOCR() {
    Global translatedText
    translatedText := ocr(pIRandomAccessStream, "ja")
    if (translatedText != "")
-     Clipboard := StrReplace(translatedText, "`n", " ")
+     text := StrReplace(translatedText, "`n", " ")
+     text := StrReplace(translatedText, " ", "")
+     Clipboard := text
    Return
 }
 
