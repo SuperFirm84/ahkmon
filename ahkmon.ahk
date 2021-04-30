@@ -22,11 +22,12 @@ IniRead, FontSize, settings.ini, settings, FontSize, 16
 IniRead, FontType, settings.ini, settings, FontType, Arial
 IniRead, OverlayPosX, settings.ini, settings, OverlayPosX, 0
 IniRead, OverlayPosY, settings.ini, settings, OverlayPosY, 0
+IniRead, DeepLAttempts, settings.ini, settings, DeepLAttempts, 25
 
 ;=== Create Start GUI =======================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
-Gui, Add, Tab3,, General|Overlay Settings
+Gui, Add, Tab3,, General|Overlay Settings|Advanced
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Link, y+2 vDiscord, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
@@ -55,6 +56,12 @@ Gui, Add, Edit
 Gui, Add, UpDown, vFontSize Range8-30, %FontSize%
 Gui, Add, Text, vFontInfo, Select a font or enter a custom font available`n on your system to use with the overlay:
 Gui, Add, ComboBox, vFontType, %FontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
+
+;; Advanced tab
+Gui, Tab, Advanced
+Gui, Add, Text,, This tab is for users that struggle with the default settings.
+Gui, Add, Text, vDeepLAttemptsInfo, DeepL translate attempts before giving up:
+Gui, Add, Slider, vDeepLAttempts Range10-50 TickInterval1 Page1 Line1 Tooltip, %DeepLAttempts%
 
 ;; Tooltips
 Log_TT := "Logs both pre and post translations to separate`nlog files for viewing."
@@ -110,6 +117,7 @@ Save:
   IniWrite, %FontColor%, settings.ini, settings, FontColor
   IniWrite, %FontSize%, settings.ini, settings, FontSize
   IniWrite, %FontType%, settings.ini, settings, FontType
+  IniWrite, %DeepLAttempts%, settings.ini, settings, DeepLAttempts
 
 ;=== Global vars we'll be using elsewhere ====================================
 Global RequireFocus
@@ -118,6 +126,8 @@ Global Log
 Global TranslateType
 Global FontType
 Global FontColor
+Global DeepLAttempts
+Global ClipboardWaitTime
 
 ;=== Open DQDialog ===========================================================
 openDQDialog()

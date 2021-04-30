@@ -28,8 +28,8 @@ ClipChanged(Type) {
             ;; DPI scaling can mess up hardcoded coords, so multiply where
             ;; to move.
             WinGetPos, X, Y, W, H, DeepL
-            cNewW := (W * .10)
-            cNewH := (H * .20)
+            cNewW := (W * .20)
+            cNewH := (H * .23)
 
             ;; Remove foreign character from clipboard
             Clipboard := StrReplace(Clipboard, "「","")
@@ -38,7 +38,7 @@ ClipChanged(Type) {
             SetControlDelay -1
             SetKeyDelay, 10, 10
             ControlFocus, Chrome_WidgetWin_01, DeepL
-            ControlClick, Chrome_WidgetWin_01, DeepL,,,, NA x%cNewW% y%cNewH%
+            ControlClick, x%cNewW% y%cNewH%, DeepL,,,, Pos
             ControlSend, Chrome_WidgetWin_01, ^a, DeepL
             ControlSend, Chrome_WidgetWin_01, {Backspace}, DeepL
             ControlSend, Chrome_WidgetWin_01, ^v, DeepL
@@ -55,7 +55,7 @@ ClipChanged(Type) {
               Loop {
                 
                 ;; If DeepL takes too long to return a translation, time the attempt out.
-                if (A_Index > 25) {
+                if (A_Index > DeepLAttempts) {
                   Gui, 2:Default
                   Gui, Font, cYellow Bold, %FontType%
                   GuiControl, Font, Clip
@@ -69,9 +69,11 @@ ClipChanged(Type) {
                 loading .= "."  ; Neat loading bar to let the user know translation is happening
                 GuiControl, 2:Text, Clip, %loading%
                 SetControlDelay -1
-                ControlClick, Chrome_WidgetWin_01, DeepL,,,, NA x%cNewW% y%cNewH%
-                ControlSend, Chrome_WidgetWin_01, {Tab}{Tab}{Enter}, DeepL
-                ClipWait .4
+                ControlClick, x%cNewW% y%cNewH%, DeepL,,,, Pos
+                ControlSend, Chrome_WidgetWin_01, {Tab}, DeepL
+                ControlSend, Chrome_WidgetWin_01, {Tab}, DeepL
+                ControlSend, Chrome_WidgetWin_01, {Enter}, DeepL
+                ClipWait .6
               } Until Clipboard
 
               GuiControl, 2:Text, Clip, %Clipboard%
