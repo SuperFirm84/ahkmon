@@ -76,10 +76,22 @@ ClipChanged(Type) {
                 ClipWait .6
               } Until Clipboard
 
-              GuiControl, 2:Text, Clip, %Clipboard%
               logToFile("dq_dialog_translated.txt")
+
+              Keys := "Joy1,Joy2,Joy3,Joy4,Joy5,Joy6,Joy7,Joy8,Joy9,Joy10,Joy11,Joy12,Joy13,Joy14,Joy15,Joy16,Enter,Esc,Up,Down,Left,Right"
+
+              if (LineByLineDialog = 1) {
+                for index, sentence in StrSplit(Clipboard, "`n`n") {
+                    GuiControl, 2:Text, Clip, %sentence%
+                    Input := GetKeyPress(Keys)
+                }
+              }
+
+              else {
+                GuiControl, 2:Text, Clip, %Clipboard%
+              }
             }
-            
+  
             ;; Re-focus DQX Window
             WinActivate, ahk_exe DQXGame.exe
 
