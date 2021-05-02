@@ -18,6 +18,8 @@ IniRead, RequireFocus, settings.ini, general, RequireFocus, 0
 IniRead, OCR, settings.ini, general, OCR, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, ResizeOverlay, settings.ini, overlay, ResizeOverlay, 0
+IniRead, AutoHideOverlay, settings.ini, overlay, AutoHideOverlay, 0
+IniRead, ShowOnTaskbar, settings.ini, overlay, ShowOnTaskbar, 0
 IniRead, OverlayWidth, settings.ini, overlay, OverlayWidth, 930
 IniRead, OverlayHeight, settings.ini, overlay, OverlayHeight, 150
 IniRead, OverlayColor, settings.ini, overlay, OverlayColor, 000000
@@ -38,7 +40,7 @@ Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Link, y+2 vDiscord, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
 Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
-Gui, Add, Link,, Language do you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
+Gui, Add, Link,, Language you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
 Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
 Gui, Add, CheckBox, vRequireFocus Checked%RequireFocus%, Require DQX window to be focused for auto translate?
@@ -51,6 +53,8 @@ Gui, Add, Button, gSave, Run ahkmon
 Gui, Tab, Overlay Settings
 Gui, Add, Text,, F12 will turn the overlay on/off.`n - Alt+F12 will save the location of the overlay on next start.`n - Make sure you click on the overlay before you press Alt+F12!
 Gui, Add, CheckBox, vResizeOverlay Checked%ResizeOverlay%, Allow resize of overlay?
+Gui, Add, CheckBox, vAutoHideOverlay Checked%AutoHideOverlay%, Automatically hide overlay?
+Gui, Add, CheckBox, vShowOnTaskbar Checked%ShowOnTaskbar%, Show overlay on taskbar when active?
 Gui, Add, Text,, Overlay transparency (lower = more transparent):
 Gui, Add, Slider, vOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %OverlayTransparency%
 Gui, Add, Text, vOverlayColorInfo, Overlay background color (use hex color codes):
@@ -82,46 +86,13 @@ Gui, Add, CheckBox, vDeepLAPIEnable Checked%DeepLAPIEnable%, Enable DeepL API Re
 Gui, Add, Text,, DeepL API Key (Found in your account page):
 Gui, Add, Text, y+2 cRed, DO NOT SHARE THIS KEY WITH ANYONE
 Gui, Add, Edit, r1 vDeepLAPIKey w135, %DeepLAPIKey%
-Gui, Add, Button, gDeepLWordsLeft, Check remaining character count for month
-Gui, Add, Text, w+300 vDeepLWords,
-
-;; Tooltips
-Log_TT := "Logs both pre and post translations to separate`nlog files for viewing."
-RequireFocus_TT := "Checked: Auto translation will only work`nwhen DQX is the focused window.`nUnchecked: Auto translation will function regardless`n of DQX being the focused window or not."
-Overlay_TT := "Enables a draggable box to display the translated text.`nConfigure behavior in the 'Overlay Settings' tab."
-OCR_TT := "Optical Character Recognition (OCR) allows you to`ncapture an image with a hotkey and translate the`ntext from the image. This method is reportedly`nmore accurate than tesseract, but is far from perfect.`n`nThe method used with this program can be triggered with`nCtrl+R. Click and drag over the text you want to translate and`n it'll show up in both DeepL and the overlay."
-ResizeOverlay_TT := "Checked: Allows you to stretch the overlay`nto your preferred size.`nUnchecked:A fixed overlay with the size configured with`n'Initial overlay width' and 'Initial overlay height'."
-JoystickEnabled_TT := "Checked: Progressing dialog is done with controller inputs.`nUnchecked: Progressing dialog is done with keyboard inputs.`n(ENTER, ESCAPE and arrow keys)"
+Gui, Add, Button, gDeepLWordsLeft, Check remaining character count
+Gui, Add, Text, w+300 vDeepLWords, 
 
 ;;=== Misc Start GUI ========================================================
-;; Used for tooltip popups in the Start GUI
 Gui, Show, Autosize
-OnMessage(0x0200, "WM_MOUSEMOVE")
 Return
 
-WM_MOUSEMOVE() {
-  static CurrControl, PrevControl, _TT  ; _TT is kept blank for use by the ToolTip command below
-  CurrControl := A_GuiControl
-  if (CurrControl != PrevControl and not InStr(CurrControl, " ")) {
-    ToolTip  ; Turn off any previous tooltip
-    SetTimer, DisplayToolTip, 10
-    PrevControl := CurrControl
-  }
-  return
-
-  DisplayToolTip:
-    SetTimer, DisplayToolTip, Off
-    ToolTip % %CurrControl%_TT
-    SetTimer, RemoveToolTip, 60000
-    return
-
-  RemoveToolTip:
-    SetTimer, RemoveToolTip, Off
-    ToolTip
-    return
-}
-
-;;
 DeepLWordsLeft:
   oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
   url := "https://api-free.deepl.com/v2/usage?auth_key=" . DeepLAPIKey
@@ -146,12 +117,14 @@ Save:
   IniWrite, %Log%, settings.ini, general, Log
   IniWrite, %RequireFocus%, settings.ini, general, RequireFocus
   IniWrite, %Overlay%, settings.ini, overlay, Overlay
+  IniWrite, %ShowOnTaskbar%, settings.ini, overlay, ShowOnTaskbar
   IniWrite, %OCR%, settings.ini, general, OCR
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
   IniWrite, %OverlayWidth%, settings.ini, overlay, OverlayWidth
   IniWrite, %OverlayHeight%, settings.ini, overlay, OverlayHeight
   IniWrite, %OverlayColor%, settings.ini, overlay, OverlayColor
   IniWrite, %ResizeOverlay%, settings.ini, overlay, ResizeOverlay
+  IniWrite, %AutoHideOverlay%, settings.ini, overlay, AutoHideOverlay
   IniWrite, %FontColor%, settings.ini, overlay, FontColor
   IniWrite, %FontSize%, settings.ini, overlay, FontSize
   IniWrite, %FontType%, settings.ini, overlay, FontType
@@ -183,6 +156,11 @@ Global JoystickEnabled
 Global JoystickKeys
 Global KeyboardKeys
 Global Language
+Global newOverlayWidth
+Global newOverlayHeight
+Global AutoHideOverlay
+Global OverlayHeight
+Global alteredOverlayWidth
 
 ;=== Open DQDialog ===========================================================
 openDQDialog()
@@ -190,35 +168,36 @@ openDQDialog()
 ;=== Open overlay if enabled =================================================
 if (Overlay = 1) {
   overlayShow = 1
-  alteredOverlayWidth := OverlayWidth - 2
+  alteredOverlayWidth := OverlayWidth - 50
   Gui, 2:Default
   Gui, Color, %OverlayColor%  ; Sets GUI background to black
   Gui, Font, s%FontSize% c%FontColor%, %FontType%
-  Gui, Add, Text, -E0x200 vClip w%alteredOverlayWidth% h%OverlayHeight%
+  Gui, Add, Text, +0x0 vClip h%OverlayHeight% w%alteredOverlayWidth% 
   Gui, Show, % "w" OverlayWidth "h" OverlayHeight "x" OverlayPosX "y" OverlayPosY
   Winset, Transparent, %OverlayTransparency%, A
 
   OnMessage(0x201,"WM_LBUTTONDOWN")  ; Allows dragging the window
-  OnMessage(0x47, "WM_WINDOWPOSCHANGED")  ; When left mouse click down is detected
 
-  if (ResizeOverlay = 1) {
-    Gui, -caption +alwaysontop -Theme -DPIScale +ToolWindow -Border +Resize -MaximizeBox
+  flags := "-caption +alwaysontop -Theme -DPIScale -Border "
+
+  if (ResizeOverlay = 1)
+    customFlags := "+Resize -MaximizeBox "
+
+  if (ShowOnTaskbar = 0) {
+    customFlags .= "+ToolWindow "
+  } else {
+  	customFlags .= "-ToolWindow "
   }
-  else {
-    Gui -caption +alwaysontop -Theme -DPIScale +ToolWindow -Border
-  }
+
+  Gui, % flags . customFlags
 }
 
 ;=== Miscellaneous functions =================================================
 WM_LBUTTONDOWN(wParam,lParam,msg,hwnd) {
   PostMessage, 0xA1, 2
-}
-
-WM_WINDOWPOSCHANGED() {
-    Gui, 2:Default
-    WinGetPos,newOverlayX,newOverlayY,newOverlayWidth,newOverlayHeight, A
-    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-31 "h" newOverlayHeight-38  ; Prefer redrawing on move rather than at the end as text gets distorted otherwise
-
+  Gui, 2:Default
+  WinGetPos, newOverlayX, newOverlayY, newOverlayWidth, newOverlayHeight, A
+  GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-31 "h" newOverlayHeight-38  ; Prefer redrawing on move rather than at the end as text gets distorted otherwise
 }
 
 GetKeyPress(keyStr) {
@@ -264,8 +243,8 @@ f12::
 {
   if (Overlay = 1) {
     WinGetPos,newOverlayX,newOverlayY,newOverlayWidth,newOverlayHeight, A
-    IniWrite, %newOverlayX%, settings.ini, settings, OverlayPosX
-    IniWrite, %newOverlayY%, settings.ini, settings, OverlayPosY
+    IniWrite, %newOverlayX%, settings.ini, overlay, OverlayPosX
+    IniWrite, %newOverlayY%, settings.ini, overlay, OverlayPosY
     Return
   }
 }
