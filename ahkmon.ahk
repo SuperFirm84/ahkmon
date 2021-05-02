@@ -11,6 +11,7 @@ SendMode Input
 DetectHiddenWindows, On
 
 ;=== Load Start GUI settings from file ======================================
+IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, Overlay, settings.ini, overlay, Overlay, 1
 IniRead, RequireFocus, settings.ini, general, RequireFocus, 0
@@ -36,12 +37,14 @@ Gui, Font, s10, Segoe UI
 Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Link, y+2 vDiscord, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
+Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
+Gui, Add, Link,, Language do you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
+Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
 Gui, Add, CheckBox, vRequireFocus Checked%RequireFocus%, Require DQX window to be focused for auto translate?
 Gui, Add, CheckBox, vJoystickEnabled Checked%JoystickEnabled%, Do you play with a controller?
 Gui, Add, CheckBox, vOverlay Checked%Overlay%, Enable overlay? (Toggle with F12)
 Gui, Add, CheckBox, vOCR Checked%OCR%, Enable Optical Character Recognition (OCR)? (Ctrl+Q)
-Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
 Gui, Add, Button, gSave, Run ahkmon
 
 ;; Overlay settings tab
@@ -131,7 +134,6 @@ DeepLWordsLeft:
   GuiControl, Text, DeepLWords, %charRemaining% characters remaining
   return
 
-
 ;; What to do when the app is gracefully closed
 GuiEscape:
 GuiClose:
@@ -140,6 +142,7 @@ GuiClose:
 ;=== Save Start GUI settings to ini ==========================================
 Save:
   Gui, Submit, Hide
+  IniWrite, %Language%, settings.ini, general, Language
   IniWrite, %Log%, settings.ini, general, Log
   IniWrite, %RequireFocus%, settings.ini, general, RequireFocus
   IniWrite, %Overlay%, settings.ini, overlay, Overlay
@@ -179,6 +182,7 @@ Global dbFileName
 Global JoystickEnabled
 Global JoystickKeys
 Global KeyboardKeys
+Global Language
 
 ;=== Open DQDialog ===========================================================
 openDQDialog()
