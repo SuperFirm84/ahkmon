@@ -7,6 +7,7 @@
 #Include <ocrFunctions>
 #Include <JSON>
 #Include <SQLiteDB>
+#Include <createFormData>
 SendMode Input
 DetectHiddenWindows, On
 
@@ -29,6 +30,7 @@ IniRead, FontType, settings.ini, overlay, FontType, Arial
 IniRead, OverlayPosX, settings.ini, overlay, OverlayPosX, 0
 IniRead, OverlayPosY, settings.ini, overlay, OverlayPosY, 0
 IniRead, OverlayTransparency, settings.ini, overlay, OverlayTransparency, 255
+IniRead, HideDeepL, settings.ini, advanced, HideDeepL, 0
 IniRead, DeepLAttempts, settings.ini, advanced, DeepLAttempts, 25
 IniRead, DeepLAPIEnable, settings.ini, deepl, DeepLAPIEnable, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
@@ -36,7 +38,7 @@ IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
 ;=== Create Start GUI =======================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
-Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API
+Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API|Logging
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Link, y+2 vDiscord, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
 Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
@@ -76,6 +78,8 @@ Gui, Add, ComboBox, vFontType, %FontType%||Calibri|Consolas|Courier New|Inconsol
 ;; Advanced tab
 Gui, Tab, Advanced
 Gui, Add, Text,, This tab is for users that struggle with the default settings.
+Gui, Add, CheckBox, vHideDeepL Checked%HideDeepL%, Hide DeepL?
+Gui, Add, Button, gResetDeepLPosition, Reset DeepL Position
 Gui, Add, Text, vDeepLAttemptsInfo, DeepL Desktop client translate attempts before giving up:
 Gui, Add, Slider, vDeepLAttempts Range10-50 TickInterval1 Page1 Line1 Tooltip, %DeepLAttempts%
 
@@ -89,6 +93,12 @@ Gui, Add, Edit, r1 vDeepLAPIKey w135, %DeepLAPIKey%
 Gui, Add, Button, gDeepLWordsLeft, Check remaining character count
 Gui, Add, Text, w+300 vDeepLWords, 
 
+;; Logging tab
+Gui, Tab, Logging
+Gui, Add, Text,, Uploads your translation log and copies a link`nto your clipboard.
+Gui, Add, Button, gUploadLogs, Upload Log
+Gui, Add, Text, w+300 vLogLink, 
+
 ;;=== Misc Start GUI ========================================================
 Gui, Show, Autosize
 Return
@@ -96,13 +106,43 @@ Return
 DeepLWordsLeft:
   oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
   url := "https://api-free.deepl.com/v2/usage?auth_key=" . DeepLAPIKey
-  oWhr.Open("GET", url, 0)
+  oWhr.Open("POST", url, 0)
   oWhr.SetRequestHeader("User-Agent", "DQXTranslator")
   oWhr.Send()
   oWhr.WaitForResponse()
   jsonResponse := JSON.Load(oWhr.ResponseText)
   charRemaining := (jsonResponse.character_limit - jsonResponse.character_count)
   GuiControl, Text, DeepLWords, %charRemaining% characters remaining
+  return
+
+UploadLogs:
+  file := "textdb.out"
+  oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+
+  ;; Uses createFormData lib to generate multi-part stream
+  objParam := { file : ["textdb.out"] }
+  CreateFormData(PostData, hdr_ContentType, objParam)
+
+  oWhr.Open("POST", "https://file.io", 1)
+  oWhr.SetRequestHeader("Content-Type", hdr_ContentType)
+  oWhr.SetRequestHeader("File", file)
+  oWhr.Send(PostData)
+  oWhr.WaitForResponse()
+
+  jsonResponse := JSON.Load(oWhr.ResponseText)
+  jsonResponse := jsonResponse.link
+  Clipboard := jsonResponse
+
+  if (jsonResponse = "") {
+    GuiControl, Text, LogLink, Failed to upload. Does textdb.out exist?
+  }
+  else {
+    GuiControl, Text, LogLink, Success. Link copied to clipboard!
+  }
+  return
+
+ResetDeepLPosition:
+  WinMove, DeepL,, 0, 0
   return
 
 ;; What to do when the app is gracefully closed
@@ -129,6 +169,7 @@ Save:
   IniWrite, %FontSize%, settings.ini, overlay, FontSize
   IniWrite, %FontType%, settings.ini, overlay, FontType
   IniWrite, %OverlayTransparency%, settings.ini, overlay, OverlayTransparency
+  IniWrite, %HideDeepL%, settings.ini, advanced, HideDeepL
   IniWrite, %DeepLAttempts%, settings.ini, advanced, DeepLAttempts
   IniWrite, %DeepLAPIEnable%, settings.ini, deepl, DeepLAPIEnable
   IniWrite, %DeepLAPIKey%, settings.ini, deepl, DeepLAPIKey
