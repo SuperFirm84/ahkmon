@@ -85,7 +85,7 @@ This tab is for users who might be struggling with the default options. Allows f
 Potential solutions:
 - If you have "Require DQX window to be focused for auto translate?" checked, you will need to make sure Dragon Quest X is the focused window before attempting to translate. If you don't like this feature, don't enable it (uncheck).
 
-### Problem: I see text in the overlay, but pressing <enter key here> isn't progressing the text!
+### Problem: I see text in the overlay, but pressing a key/joystick button isn't progressing the text!
   
 Potential solutions:
 - If you have "Do you play with a controller?" enabled, you will need to use the buttons on your joystick. If this is unchecked, you will need to press ENTER, ESCAPE or use the arrow keys to progress the text.
@@ -104,4 +104,4 @@ Potential solutions:
 ### Problem: I checked "Hide DeepL?", but I can't get access to the DeepL client window anymore.
 
 Potential solutions:
-If you want to get access to DeepL again, you can relaunch `ahkmon`, click on the "Advanced" tab and click on "Reset DeepL Position". Alternatively, you can Shift+Right-Click the icon on the taskbar, click "Move", press an arrow key and then left-click your mouse to get the window back. 
+- If you want to get access to DeepL again, you can relaunch `ahkmon`, click on the "Advanced" tab and click on "Reset DeepL Position". Alternatively, you can Shift+Right-Click the icon on the taskbar, click "Move", press an arrow key and then left-click your mouse to get the window back. 
