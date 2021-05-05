@@ -3,6 +3,7 @@ Pastes your clipboard into DeepL Translate for the popular game "Dragon Quest X"
 
 ## Credit:
 - ahkmon wouldn't be possible without [Aeana's DQ10Dialog app](https://www.woodus.com/forums/topic/34653-dq10-dialog-monitor/?tab=comments#comment-538328), which is packaged with this project for convenience
+- Thanks to the lovely community over at the unofficial [Dragon Quest X Discord](https://discord.gg/UFaUHBxKMY) for the support!
 
 ## Features + Walkthrough
 
