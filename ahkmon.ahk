@@ -253,7 +253,6 @@ if (Overlay = 1)
   	customFlags .= "-ToolWindow "
 
   Gui, % flags . customFlags
-  return
 }
 
 ;=== Miscellaneous functions =================================================

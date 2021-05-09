@@ -2,8 +2,7 @@
 {
   ;; Array of Bytes pattern that tells us if the dialog box is open or closed, as well as
   ;; the partial location of the address where the dialog text is.
-  aAOBPattern := [255, 255, 255, 127, 255, 255, 255, 127, 0, 0, 0, 0, 0, 0, 0, 0, 253, 255, 168, 153]
-
+  aAOBPattern := [255, 255, 255, 127, 255, 255, 255, 127, 0, 0, 0, 0, 0, 0, 0, 0, 253, "?", 168, 153]
   Process, Exist, DQXGame.exe
   if ErrorLevel
   {
