@@ -15,16 +15,19 @@
 SetWinDelay, 0
 
 screenOCR() {
-   hBitmap := HBitmapFromScreen(GetArea()*)
-   pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
-   DllCall("DeleteObject", "Ptr", hBitmap)
-   Global translatedText
-   translatedText := ocr(pIRandomAccessStream, "ja")
-   if (translatedText != "")
-     text := StrReplace(translatedText, "`n", " ")
-     text := StrReplace(translatedText, " ", "")
-     Clipboard := text
-   Return
+  hBitmap := HBitmapFromScreen(GetArea()*)
+  pIRandomAccessStream := HBitmapToRandomAccessStream(hBitmap)
+  DllCall("DeleteObject", "Ptr", hBitmap)
+  Global translatedText
+  translatedText := ocr(pIRandomAccessStream, "ja")
+  if (translatedText != "")
+    text := StrReplace(translatedText, "`n", " ")
+    text := StrReplace(translatedText, " ", "")
+    if (DeepLAPIEnable = 1)
+      DeepLAPI(text)
+    else
+      DeepLDesktop(text)
+  Return
 }
 
 GetArea() {

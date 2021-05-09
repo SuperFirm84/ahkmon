@@ -1,8 +1,8 @@
 # ahkmon
-Pastes your clipboard into DeepL Translate for the popular game "Dragon Quest X" (DQX).
+Captures text for the popular game "Dragon Quest X" (DQX).
 
 ## Credit:
-- ahkmon wouldn't be possible without [Aeana's DQ10Dialog app](https://www.woodus.com/forums/topic/34653-dq10-dialog-monitor/?tab=comments#comment-538328), which is packaged with this project for convenience
+- ahkmon wouldn't be possible without [Aeana's DQ10Dialog app](https://www.woodus.com/forums/topic/34653-dq10-dialog-monitor/?tab=comments#comment-538328). Thanks for the inspiration (but screw you for ignoring me on Twitter!)
 - Thanks to the lovely community over at the unofficial [Dragon Quest X Discord](https://discord.gg/UFaUHBxKMY) for the support!
 
 ## Features + Walkthrough
@@ -14,11 +14,8 @@ Pastes your clipboard into DeepL Translate for the popular game "Dragon Quest X"
 - Language you want to translate text to:
   - Provides a list of regional codes to use for translating. This has no effect on the DeepL client translations, but controls what text is pulled from the SQLite database and (if enabled) what is sent to the DeepL API for translating.
 - Enable logging to file
-  - ✔: This sends the Japanese and translated text to a file called `textdb.out` in the local `ahkmon` directory. This pipe-delimited file is used to feed the dialog database back into the SQLite database.
+  - ✔: This sends the Japanese and translated text to a file called `textdb.csv` in the local `ahkmon` directory. This pipe-delimited file is used to feed the dialog database back into the SQLite database. Only works with the DeepL desktop client.
   - ✖: Don't log to file.
-- Require DQX window to be focused for auto translate?
-  - ✔: If the Dragon Quest X window is focused, perform auto translate operations. If Dragon Quest X isn't targeted, auto translation will not occur. This is useful if you multi-task outside of Dragon Quest X and tend to copy other things to your browser while the game is open.
-  - ✖: Auto translation will happen regardless if Dragon Quest X is the focused window or not.
 - Do you play with a controller?
   - ✔: Controller keypresses will progress the text in the overlay.
   - ✖: Keyboard keypresses will progress the text in the overlay. Valid keys are ENTER, ESCAPE and the arrow keys.
@@ -26,7 +23,7 @@ Pastes your clipboard into DeepL Translate for the popular game "Dragon Quest X"
   - ✔: A configurable overlay will display on your screen. You can customize the look of the overlay in the "Overlay Settings" tab.
   - ✖: An overlay will not be displayed.
 - Enable Optical Character Recognition (OCR)? (Ctrl+Q)
-  - ✔: Using Ctrl+Q, you can click and drag a section of the screen to have translated. Keep the selection small and as tight to the text as possible. The Japanese language pack will need to be installed on your system and can be found [here](https://www.microsoft.com/store/productId/9N1W692FV4S1)
+  - ✔: Using Ctrl+Q, you can click and drag a section of the screen to have translated. Keep the selection small and as tight to the text as possible. The Japanese language pack will need to be installed on your system and can be found [here](https://www.microsoft.com/store/productId/9N1W692FV4S1). Note that you will need to use either the controller or keyboard to progress the text after capturing (depending on what you selected).
   - ✖: OCR will not be enabled.
 
 ### Overlay Settings tab

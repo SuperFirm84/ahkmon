@@ -3,11 +3,12 @@
 #SingleInstance force
 #Include <DeepLDesktop>
 #Include <DeepLAPI>
-#Include <openDQDialog>
 #Include <ocrFunctions>
 #Include <JSON>
 #Include <SQLiteDB>
 #Include <createFormData>
+#Include <classMemory>
+#Include <dqMemRead>
 SendMode Input
 DetectHiddenWindows, On
 
@@ -15,12 +16,12 @@ DetectHiddenWindows, On
 IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, Overlay, settings.ini, overlay, Overlay, 1
-IniRead, RequireFocus, settings.ini, general, RequireFocus, 0
 IniRead, OCR, settings.ini, general, OCR, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, ResizeOverlay, settings.ini, overlay, ResizeOverlay, 0
 IniRead, AutoHideOverlay, settings.ini, overlay, AutoHideOverlay, 0
 IniRead, ShowOnTaskbar, settings.ini, overlay, ShowOnTaskbar, 0
+IniRead, RoundedOverlay, settings.ini, overlay, RoundedOverlay, 1
 IniRead, OverlayWidth, settings.ini, overlay, OverlayWidth, 930
 IniRead, OverlayHeight, settings.ini, overlay, OverlayHeight, 150
 IniRead, OverlayColor, settings.ini, overlay, OverlayColor, 000000
@@ -38,14 +39,12 @@ IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
 ;=== Create Start GUI =======================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
-Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API|Logging
+Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API|About
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
-Gui, Add, Link, y+2 vDiscord, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
 Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
 Gui, Add, Link,, Language you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
 Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
-Gui, Add, CheckBox, vRequireFocus Checked%RequireFocus%, Require DQX window to be focused for auto translate?
 Gui, Add, CheckBox, vJoystickEnabled Checked%JoystickEnabled%, Do you play with a controller?
 Gui, Add, CheckBox, vOverlay Checked%Overlay%, Enable overlay? (Toggle with F12)
 Gui, Add, CheckBox, vOCR Checked%OCR%, Enable Optical Character Recognition (OCR)? (Ctrl+Q)
@@ -59,6 +58,7 @@ Gui, Add, CheckBox, vAutoHideOverlay Checked%AutoHideOverlay%, Automatically hid
 Gui, Add, CheckBox, vShowOnTaskbar Checked%ShowOnTaskbar%, Show overlay on taskbar when active?
 Gui, Add, Text,, Overlay transparency (lower = more transparent):
 Gui, Add, Slider, vOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %OverlayTransparency%
+Gui, Add, CheckBox, vRoundedOverlay Checked%RoundedOverlay%, Curved overlay? 
 Gui, Add, Text, vOverlayColorInfo, Overlay background color (use hex color codes):
 Gui, Add, ComboBox, vOverlayColor, %OverlayColor%||
 Gui, Add, Text, vOverlayWidthInfo, Initial overlay width:
@@ -82,6 +82,12 @@ Gui, Add, CheckBox, vHideDeepL Checked%HideDeepL%, Hide DeepL?
 Gui, Add, Button, gResetDeepLPosition, Reset DeepL Position
 Gui, Add, Text, vDeepLAttemptsInfo, DeepL Desktop client translate attempts before giving up:
 Gui, Add, Slider, vDeepLAttempts Range10-50 TickInterval1 Page1 Line1 Tooltip, %DeepLAttempts%
+Gui, Add, Text,, Uploads your translation log and copies a link`nto your clipboard.
+Gui, Add, Button, gUploadLogs, Upload Log
+Gui, Add, Text, w+300 vLogLink, 
+Gui, Add, Text,, Download latest database:
+Gui, Add, Button, gDownloadDb, Download Database
+Gui, Add, Text, w+300 vDatabaseStatusMessage,
 
 ;; DeepL API tab
 Gui, Tab, DeepL API
@@ -93,11 +99,13 @@ Gui, Add, Edit, r1 vDeepLAPIKey w135, %DeepLAPIKey%
 Gui, Add, Button, gDeepLWordsLeft, Check remaining character count
 Gui, Add, Text, w+300 vDeepLWords, 
 
-;; Logging tab
-Gui, Tab, Logging
-Gui, Add, Text,, Uploads your translation log and copies a link`nto your clipboard.
-Gui, Add, Button, gUploadLogs, Upload Log
-Gui, Add, Text, w+300 vLogLink, 
+;; About tab
+Gui, Tab, About
+Gui, Add, Link,, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon">Get the Source</a>
+Gui, Add, Text,, Catch me on Discord: mebo#1337
+Gui, Add, Text,, Made by Serany <3
+
 
 ;;=== Misc Start GUI ========================================================
 Gui, Show, Autosize
@@ -120,7 +128,7 @@ UploadLogs:
   oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
 
   ;; Uses createFormData lib to generate multi-part stream
-  objParam := { file : ["textdb.out"] }
+  objParam := { file : ["textdb.csv"] }
   CreateFormData(PostData, hdr_ContentType, objParam)
 
   oWhr.Open("POST", "https://file.io", 1)
@@ -131,13 +139,27 @@ UploadLogs:
 
   jsonResponse := JSON.Load(oWhr.ResponseText)
   jsonResponse := jsonResponse.link
-  Clipboard := jsonResponse
 
-  if (jsonResponse = "") {
-    GuiControl, Text, LogLink, Failed to upload. Does textdb.out exist?
+  if (jsonResponse = "")
+  {
+    GuiControl, Text, LogLink, Failed to upload. Does textdb.csv exist?
   }
-  else {
+  else 
+  {
+    Clipboard := jsonResponse
     GuiControl, Text, LogLink, Success. Link copied to clipboard!
+  }
+  return
+
+DownloadDb:
+  UrlDownloadToFile, https://github.com/jmctune/ahkmon/raw/main/dqxtrl.db, dqxtrl.db
+  if ErrorLevel
+  {
+    GuiControl, Text, DatabaseStatusMessage, Database failed to update.
+  }
+  else
+  {
+    GuiControl, Text, DatabaseStatusMessage, Database updated!
   }
   return
 
@@ -155,13 +177,13 @@ Save:
   Gui, Submit, Hide
   IniWrite, %Language%, settings.ini, general, Language
   IniWrite, %Log%, settings.ini, general, Log
-  IniWrite, %RequireFocus%, settings.ini, general, RequireFocus
   IniWrite, %Overlay%, settings.ini, overlay, Overlay
   IniWrite, %ShowOnTaskbar%, settings.ini, overlay, ShowOnTaskbar
   IniWrite, %OCR%, settings.ini, general, OCR
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
   IniWrite, %OverlayWidth%, settings.ini, overlay, OverlayWidth
   IniWrite, %OverlayHeight%, settings.ini, overlay, OverlayHeight
+  IniWrite, %RoundedOverlay%, settings.ini, overlay, RoundedOverlay
   IniWrite, %OverlayColor%, settings.ini, overlay, OverlayColor
   IniWrite, %ResizeOverlay%, settings.ini, overlay, ResizeOverlay
   IniWrite, %AutoHideOverlay%, settings.ini, overlay, AutoHideOverlay
@@ -174,25 +196,21 @@ Save:
   IniWrite, %DeepLAPIEnable%, settings.ini, deepl, DeepLAPIEnable
   IniWrite, %DeepLAPIKey%, settings.ini, deepl, DeepLAPIKey
 
-;=== SQLLite DB Details ======================================================
-dbFileName := A_ScriptDir . "\dqxtrl.db"
-
 ;=== Keys to press to trigger dialog to continue =============================
 KeyboardKeys := "Enter,Esc,Up,Down,Left,Right"
 JoystickKeys := "Joy1,Joy2,Joy3,Joy4,Joy5,Joy6,Joy7,Joy8,Joy9,Joy10,Joy11,Joy12,Joy13,Joy14,Joy15,Joy16,Joy17,Joy18,Joy19,Joy20,Joy21,Joy22,Joy23,Joy24,Joy25,Joy26,Joy27,Joy28,Joy29,Joy30,Joy31,Joy32"
 
 ;=== Global vars we'll be using elsewhere ====================================
-Global RequireFocus
 Global Overlay
 Global Log
 Global TranslateType
 Global FontType
 Global FontColor
 Global DeepLAttempts
+Global HideDeepL
 Global ClipboardWaitTime
 Global DeepLAPIEnable
 Global DeepLAPIKey
-Global dbFileName
 Global JoystickEnabled
 Global JoystickKeys
 Global KeyboardKeys
@@ -203,11 +221,9 @@ Global AutoHideOverlay
 Global OverlayHeight
 Global alteredOverlayWidth
 
-;=== Open DQDialog ===========================================================
-openDQDialog()
-
 ;=== Open overlay if enabled =================================================
-if (Overlay = 1) {
+if (Overlay = 1)
+{
   overlayShow = 1
   alteredOverlayWidth := OverlayWidth - 50
   Gui, 2:Default
@@ -216,6 +232,13 @@ if (Overlay = 1) {
   Gui, Add, Text, +0x0 vClip h%OverlayHeight% w%alteredOverlayWidth% 
   Gui, Show, % "w" OverlayWidth "h" OverlayHeight "x" OverlayPosX "y" OverlayPosY
   Winset, Transparent, %OverlayTransparency%, A
+  Gui, +LastFound -DPIScale
+
+  if (RoundedOverlay = 1)
+  {
+    WinGetPos, X, Y, W, H, A
+    WinSet, Region, R30-30 W%W% H%H% %X%-%Y%
+  }
 
   OnMessage(0x201,"WM_LBUTTONDOWN")  ; Allows dragging the window
 
@@ -224,13 +247,13 @@ if (Overlay = 1) {
   if (ResizeOverlay = 1)
     customFlags := "+Resize -MaximizeBox "
 
-  if (ShowOnTaskbar = 0) {
+  if (ShowOnTaskbar = 0) 
     customFlags .= "+ToolWindow "
-  } else {
+  else
   	customFlags .= "-ToolWindow "
-  }
 
   Gui, % flags . customFlags
+  return
 }
 
 ;=== Miscellaneous functions =================================================
@@ -251,13 +274,8 @@ GetKeyPress(keyStr) {
       }
 }
 
-;=== Start Clipboard listen ==================================================
-if (DeepLAPIEnable = 1) {
-  OnClipboardChange("DeepLAPI")
-}
-else {
-  OnClipboardChange("DeepLDesktop")
-}
+;=== Start DQ memread ========================================================
+dqMemRead()
 
 ;=== Allows toggling the overlay on and off ==================================
 f12::
@@ -277,18 +295,19 @@ f12::
     WinActivate, ahk_exe DQXGame.exe
     overlayShow = 1
   }
+  return
 }
 
 ;=== Saves location of dialog box ============================================
-!f12::
-{
-  if (Overlay = 1) {
-    WinGetPos,newOverlayX,newOverlayY,newOverlayWidth,newOverlayHeight, A
-    IniWrite, %newOverlayX%, settings.ini, overlay, OverlayPosX
-    IniWrite, %newOverlayY%, settings.ini, overlay, OverlayPosY
-    Return
-  }
-}
+; !f12::
+; {
+;   if (Overlay = 1) {
+;     WinGetPos,newOverlayX,newOverlayY,newOverlayWidth,newOverlayHeight, A
+;     IniWrite, %newOverlayX%, settings.ini, overlay, OverlayPosX
+;     IniWrite, %newOverlayY%, settings.ini, overlay, OverlayPosY
+;     Return
+;   }
+; }
 
 ;=== Activates OCR capture ===================================================
 ^Q::
@@ -296,4 +315,5 @@ f12::
   if (OCR = 1) {
     screenOCR()
   }
+  return
 }
