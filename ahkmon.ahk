@@ -34,6 +34,7 @@ IniRead, OverlayTransparency, settings.ini, overlay, OverlayTransparency, 255
 IniRead, HideDeepL, settings.ini, advanced, HideDeepL, 0
 IniRead, DeepLAttempts, settings.ini, advanced, DeepLAttempts, 25
 IniRead, DeepLAPIEnable, settings.ini, deepl, DeepLAPIEnable, 0
+IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
 
 ;=== Create Start GUI =======================================================
@@ -85,14 +86,15 @@ Gui, Add, Slider, vDeepLAttempts Range10-50 TickInterval1 Page1 Line1 Tooltip, %
 Gui, Add, Text,, Uploads your translation log and copies a link`nto your clipboard.
 Gui, Add, Button, gUploadLogs, Upload Log
 Gui, Add, Text, w+300 vLogLink, 
-Gui, Add, Text,, Download latest database:
+Gui, Add, Text,, Download latest database`n(this will overwrite your current database!)
 Gui, Add, Button, gDownloadDb, Download Database
 Gui, Add, Text, w+300 vDatabaseStatusMessage,
 
 ;; DeepL API tab
 Gui, Tab, DeepL API
-Gui, Add, Text,, This section is for those who created a DeepL Pro free account.`n`nThis allows you to use ahkmon without the DeepL desktop`nclient, while instead, interacting directly with DeepL's API.`n`nNote that signing up for a free DeepL Pro account`nrequires a valid credit card.`n`nDo not enable this option if you do not have DeepL Pro.`n
+Gui, Add, Text,, This section is for those who created a DeepL Pro account.`n`nThis allows you to use ahkmon without the DeepL desktop`nclient, while instead, interacting directly with DeepL's API.`n`nNote that signing up for a DeepL API account`nrequires a valid credit card.`n`nDo not enable this option if you do not have DeepL API Free or Pro.`n
 Gui, Add, CheckBox, vDeepLAPIEnable Checked%DeepLAPIEnable%, Enable DeepL API Requests?
+Gui, Add, CheckBox, vDeepLApiPro Checked%DeepLApiPro%, Do you have DeepL API Pro?
 Gui, Add, Text,, DeepL API Key (Found in your account page):
 Gui, Add, Text, y+2 cRed, DO NOT SHARE THIS KEY WITH ANYONE
 Gui, Add, Edit, r1 vDeepLAPIKey w135, %DeepLAPIKey%
@@ -103,17 +105,26 @@ Gui, Add, Text, w+300 vDeepLWords,
 Gui, Tab, About
 Gui, Add, Link,, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon">Get the Source</a>
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki">Documentation</a>
+Gui, Add, Link,, Like what I'm doing? <a href="https://www.paypal.com/paypalme/supportjmct">Donate :P</a>
 Gui, Add, Text,, Catch me on Discord: mebo#1337
 Gui, Add, Text,, Made by Serany <3
-
 
 ;;=== Misc Start GUI ========================================================
 Gui, Show, Autosize
 Return
 
 DeepLWordsLeft:
+  GuiControlGet, DeepLApiPro
+  GuiControlGet, DeepLAPIKey
+
+  if DeepLApiPro = 1
+    url := "https://api.deepl.com/v2"
+  else
+    url := "https://api-free.deepl.com/v2"
+
   oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-  url := "https://api-free.deepl.com/v2/usage?auth_key=" . DeepLAPIKey
+  url := url . "/usage?auth_key=" . DeepLAPIKey
   oWhr.Open("POST", url, 0)
   oWhr.SetRequestHeader("User-Agent", "DQXTranslator")
   oWhr.Send()
@@ -194,6 +205,7 @@ Save:
   IniWrite, %HideDeepL%, settings.ini, advanced, HideDeepL
   IniWrite, %DeepLAttempts%, settings.ini, advanced, DeepLAttempts
   IniWrite, %DeepLAPIEnable%, settings.ini, deepl, DeepLAPIEnable
+  IniWrite, %DeepLApiPro%, settings.ini, deepl, DeepLApiPro
   IniWrite, %DeepLAPIKey%, settings.ini, deepl, DeepLAPIKey
 
 ;=== Keys to press to trigger dialog to continue =============================
@@ -220,6 +232,7 @@ Global newOverlayHeight
 Global AutoHideOverlay
 Global OverlayHeight
 Global alteredOverlayWidth
+Global DeepLApiPro
 
 ;=== Open overlay if enabled =================================================
 if (Overlay = 1)

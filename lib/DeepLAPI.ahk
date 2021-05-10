@@ -41,8 +41,14 @@
             . "&text="
             . sentence
 
+      if DeepLApiPro = 1
+        url := "https://api.deepl.com/v2/translate"
+      else
+        url := "https://api-free.deepl.com/v2/translate"
+
       oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-      oWhr.Open("POST", "https://api-free.deepl.com/v2/translate", 0)
+      oWhr.Open("POST", url, 0)
+
       oWhr.SetRequestHeader("User-Agent", "DQXTranslator")
       oWhr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
       oWhr.Send(Body)
@@ -53,7 +59,9 @@
       translatedText := jsonResponse.translations[1].text
 
       ;; Sanitize text that comes back from DeepL
-      translatedText := StrReplace(translatedText, "ã"," ")
+      if (Language = "en")
+        translatedText := StrReplace(translatedText, "ã"," ")
+
       translatedText := StrReplace(translatedText, "'","''")  ;; Escape single quotes found in contractions before sending to database
 
       ;; Write new entry to the database if it doesn't exist.
