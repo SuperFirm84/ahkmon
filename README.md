@@ -1,6 +1,10 @@
 # ahkmon
 Captures text for the popular game "Dragon Quest X" (DQX).
 
+## Prerequirements:
+- If you don't have a DeepL Pro (Free) account, you will need to download the [DeepL Desktop client](https://www.deepl.com/app)
+- If you do have a DeepL Pro (Free) account, no additional apps are needed, but you will need your API key found in your DeepL account page
+
 ## Credit:
 - ahkmon wouldn't be possible without [Aeana's DQ10Dialog app](https://www.woodus.com/forums/topic/34653-dq10-dialog-monitor/?tab=comments#comment-538328). Thanks for the inspiration (but screw you for ignoring me on Twitter!)
 - Thanks to the lovely community over at the unofficial [Dragon Quest X Discord](https://discord.gg/UFaUHBxKMY) for the support!
