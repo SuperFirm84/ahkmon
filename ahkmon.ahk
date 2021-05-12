@@ -209,8 +209,30 @@ Save:
   IniWrite, %DeepLAPIKey%, settings.ini, deepl, DeepLAPIKey
 
 ;=== Keys to press to trigger dialog to continue =============================
+;; Detect joystick
+if (JoystickEnabled = 1)
+{
+  Loop 16  ; Query each joystick number to find out which ones exist.
+    {
+      GetKeyState, JoyName, %A_Index%JoyName
+      if JoyName <>
+      {
+        JoystickNumber = %A_Index%
+        break
+      }
+    }
+    if JoystickNumber <= 0
+    {
+      MsgBox Could not find a valid joystick. Exiting.
+      ExitApp
+    }
+}
+
 KeyboardKeys := "Enter,Esc,Up,Down,Left,Right"
-JoystickKeys := "Joy1,Joy2,Joy3,Joy4,Joy5,Joy6,Joy7,Joy8,Joy9,Joy10,Joy11,Joy12,Joy13,Joy14,Joy15,Joy16,Joy17,Joy18,Joy19,Joy20,Joy21,Joy22,Joy23,Joy24,Joy25,Joy26,Joy27,Joy28,Joy29,Joy30,Joy31,Joy32"
+
+;; Maps 1Joy1, 1Joy2, etc for the correct controller number that was found.
+loop 32
+  JoystickKeys .= JoystickNumber . "Joy" . A_Index . ","
 
 ;=== Global vars we'll be using elsewhere ====================================
 Global Overlay
@@ -276,11 +298,13 @@ WM_LBUTTONDOWN(wParam,lParam,msg,hwnd) {
   GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-31 "h" newOverlayHeight-38  ; Prefer redrawing on move rather than at the end as text gets distorted otherwise
 }
 
+;; Controller/Keyboard function to progress text
 GetKeyPress(keyStr) {
   keys := StrSplit(keyStr, ",")
   loop
     for each, key in keys
-      if GetKeyState(key) {
+      if GetKeyState(key)
+      {
         KeyWait, %key%
         return key
       }

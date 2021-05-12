@@ -1,4 +1,4 @@
-;; All credit for these functions go to malcev + teadrinker
+﻿;; All credit for these functions go to malcev + teadrinker
 ;; https://www.autohotkey.com/boards/viewtopic.php?f=6&t=72674
 
 ;; Note that the Japanese language pack needs to be installed to

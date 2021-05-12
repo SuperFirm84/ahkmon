@@ -50,12 +50,17 @@
       oWhr.Open("POST", url, 0)
 
       oWhr.SetRequestHeader("User-Agent", "DQXTranslator")
-      oWhr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+      oWhr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
       oWhr.Send(Body)
       oWhr.WaitForResponse()
           
-      ;; Translated dialog text
-      jsonResponse := JSON.Load(oWhr.ResponseText)
+      ;; Translated dialog text. We want to convert the response to UTF-8, as we support
+      ;; multiple languages with different glyphs/characters.
+      arr := oWhr.responseBody
+      pData := NumGet(ComObjValue(arr) + 8 + A_PtrSize)
+      length := arr.MaxIndex() + 1
+      response := StrGet(pData, length, "utf-8")
+      jsonResponse := JSON.Load(response)
       translatedText := jsonResponse.translations[1].text
 
       ;; Sanitize text that comes back from DeepL
