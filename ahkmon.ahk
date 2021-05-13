@@ -12,6 +12,41 @@
 SendMode Input
 DetectHiddenWindows, On
 
+;=== Auto update ============================================================
+;; Get latest version number from Github
+oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+url := "https://api.github.com/repos/jmctune/ahkmon/releases/latest"
+oWhr.Open("GET", url, 0)
+oWhr.Send()
+oWhr.WaitForResponse()
+jsonResponse := JSON.Load(oWhr.ResponseText)
+latestVersion := (jsonResponse.tag_name)
+latestVersion := SubStr(latestVersion, 2)
+
+;; Get current version locally from version file
+FileRead, currentVersion, version
+
+;; If the versions differ, run updater
+if (latestVersion != currentVersion)
+{
+  if (latestVersion = "" || currentVersion = "")
+  {
+    MsgBox Unable to determine latest version. Continuing without updating.
+  }
+  else
+  {
+    Run ahkmon_updater.exe
+    ExitApp
+  }
+}
+else
+{
+tmpLoc := A_ScriptDir "\tmp"
+if FileExist(tmpLoc)
+  FileRemoveDir, %A_ScriptDir%\tmp, 1
+  sleep 50
+}
+
 ;=== Load Start GUI settings from file ======================================
 IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
@@ -21,7 +56,6 @@ IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, ResizeOverlay, settings.ini, overlay, ResizeOverlay, 0
 IniRead, AutoHideOverlay, settings.ini, overlay, AutoHideOverlay, 0
 IniRead, ShowOnTaskbar, settings.ini, overlay, ShowOnTaskbar, 0
-IniRead, RoundedOverlay, settings.ini, overlay, RoundedOverlay, 1
 IniRead, OverlayWidth, settings.ini, overlay, OverlayWidth, 930
 IniRead, OverlayHeight, settings.ini, overlay, OverlayHeight, 150
 IniRead, OverlayColor, settings.ini, overlay, OverlayColor, 000000
@@ -59,7 +93,6 @@ Gui, Add, CheckBox, vAutoHideOverlay Checked%AutoHideOverlay%, Automatically hid
 Gui, Add, CheckBox, vShowOnTaskbar Checked%ShowOnTaskbar%, Show overlay on taskbar when active?
 Gui, Add, Text,, Overlay transparency (lower = more transparent):
 Gui, Add, Slider, vOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %OverlayTransparency%
-Gui, Add, CheckBox, vRoundedOverlay Checked%RoundedOverlay%, Curved overlay? 
 Gui, Add, Text, vOverlayColorInfo, Overlay background color (use hex color codes):
 Gui, Add, ComboBox, vOverlayColor, %OverlayColor%||
 Gui, Add, Text, vOverlayWidthInfo, Initial overlay width:
@@ -194,7 +227,6 @@ Save:
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
   IniWrite, %OverlayWidth%, settings.ini, overlay, OverlayWidth
   IniWrite, %OverlayHeight%, settings.ini, overlay, OverlayHeight
-  IniWrite, %RoundedOverlay%, settings.ini, overlay, RoundedOverlay
   IniWrite, %OverlayColor%, settings.ini, overlay, OverlayColor
   IniWrite, %ResizeOverlay%, settings.ini, overlay, ResizeOverlay
   IniWrite, %AutoHideOverlay%, settings.ini, overlay, AutoHideOverlay
@@ -265,19 +297,13 @@ if (Overlay = 1)
   Gui, Color, %OverlayColor%  ; Sets GUI background to black
   Gui, Font, s%FontSize% c%FontColor%, %FontType%
   Gui, Add, Text, +0x0 vClip h%OverlayHeight% w%alteredOverlayWidth% 
-  Gui, Show, % "w" OverlayWidth "h" OverlayHeight "x" OverlayPosX "y" OverlayPosY
+  Gui, Show, w%OverlayWidth% h%OverlayHeight% x%OverlayPosX% y%OverlayPosY%
   Winset, Transparent, %OverlayTransparency%, A
-  Gui, +LastFound -DPIScale
-
-  if (RoundedOverlay = 1)
-  {
-    WinGetPos, X, Y, W, H, A
-    WinSet, Region, R30-30 W%W% H%H% %X%-%Y%
-  }
+  Gui, +LastFound
 
   OnMessage(0x201,"WM_LBUTTONDOWN")  ; Allows dragging the window
 
-  flags := "-caption +alwaysontop -Theme -DPIScale -Border "
+  flags := "-caption +alwaysontop -Theme -DpiScale -Border "
 
   if (ResizeOverlay = 1)
     customFlags := "+Resize -MaximizeBox "
@@ -285,9 +311,10 @@ if (Overlay = 1)
   if (ShowOnTaskbar = 0) 
     customFlags .= "+ToolWindow "
   else
-  	customFlags .= "-ToolWindow "
+    customFlags .= "-ToolWindow "
 
   Gui, % flags . customFlags
+
 }
 
 ;=== Miscellaneous functions =================================================
@@ -296,6 +323,9 @@ WM_LBUTTONDOWN(wParam,lParam,msg,hwnd) {
   Gui, 2:Default
   WinGetPos, newOverlayX, newOverlayY, newOverlayWidth, newOverlayHeight, A
   GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-31 "h" newOverlayHeight-38  ; Prefer redrawing on move rather than at the end as text gets distorted otherwise
+  WinGetPos, newOverlayX, newOverlayY, newOverlayWidth, newOverlayHeight, A
+  IniWrite, %newOverlayX%, settings.ini, overlay, OverlayPosX
+  IniWrite, %newOverlayY%, settings.ini, overlay, OverlayPosY
 }
 
 ;; Controller/Keyboard function to progress text
@@ -333,17 +363,6 @@ f12::
   }
   return
 }
-
-;=== Saves location of dialog box ============================================
-; !f12::
-; {
-;   if (Overlay = 1) {
-;     WinGetPos,newOverlayX,newOverlayY,newOverlayWidth,newOverlayHeight, A
-;     IniWrite, %newOverlayX%, settings.ini, overlay, OverlayPosX
-;     IniWrite, %newOverlayY%, settings.ini, overlay, OverlayPosY
-;     Return
-;   }
-; }
 
 ;=== Activates OCR capture ===================================================
 ^Q::
