@@ -36,7 +36,7 @@
       ;; Start reading memory for dialog address.
       loop
       {
-        dialogPatternResult := dqx.processPatternScan(,, aAOBPattern*)
+        dialogPatternResult := dqx.processPatternScan(0x45000000,0x50000000, aAOBPattern*)
         dialogBaseAddress := dialogPatternResult + 32 + 4
         dialogActualAddress := dqx.read(dialogBaseAddress, "UInt")
 
@@ -48,6 +48,7 @@
           dialogText := RegExReplace(dialogText, "<br>", "`n`n")
           dialogText := RegExReplace(dialogText, "(<.+?>)", "")
           dialogText := StrReplace(dialogText, "「", "")
+          FileAppend, %dialogPatternResult%`n, memloc.txt
 
           ;; Determine which DeepL method to use.
           if (DeepLAPIEnable = 1)

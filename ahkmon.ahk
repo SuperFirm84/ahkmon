@@ -87,7 +87,7 @@ Gui, Add, Button, gSave, Run ahkmon
 
 ;; Overlay settings tab
 Gui, Tab, Overlay Settings
-Gui, Add, Text,, F12 will turn the overlay on/off.`n - Alt+F12 will save the location of the overlay on next start.`n - Make sure you click on the overlay before you press Alt+F12!
+Gui, Add, Text,, F12 will turn the overlay on/off.
 Gui, Add, CheckBox, vResizeOverlay Checked%ResizeOverlay%, Allow resize of overlay?
 Gui, Add, CheckBox, vAutoHideOverlay Checked%AutoHideOverlay%, Automatically hide overlay?
 Gui, Add, CheckBox, vShowOnTaskbar Checked%ShowOnTaskbar%, Show overlay on taskbar when active?

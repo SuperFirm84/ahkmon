@@ -9,10 +9,14 @@ Used to auto update ahkmon to the latest version
 *************************************************
 */
 
-;; Display GUI to user showing the update is happening
-Gui, 1:Default
-Gui, Add, Progress, w200 h15 c0096FF Background0a2351 vProgress, 0
+;=== Display GUI to user showing the update is happening =======================
+Gui, -SysMenu +AlwaysOnTop +E0x08000000
+Gui, Add, Progress, w500 h15 c0096FF Background0a2351 vProgress, 0
+Gui, Font, s12
+Gui, Add, Edit, vNotes w500 r10 +ReadOnly -WantCtrlA -WantReturn, Updating..
+Gui, Add, Button, w60 +x225 Default +Disabled, OK
 Gui, Show, Autosize
+;===============================================================================
 
 ;; Make sure /tmp is clean by deleting + re-creating, then move updater into /tmp.
 FileRemoveDir, %A_ScriptDir%\tmp
@@ -23,14 +27,8 @@ FileMove, %A_ScriptDir%\ahkmon_updater.exe, %A_ScriptDir%\tmp\ahkmon_updater.exe
 
 ;; Download latest version
 url := "https://github.com/jmctune/ahkmon/releases/latest/download/ahkmon.zip"
-;downloadFile(url)
+downloadFile(url)
 GuiControl,, Progress, 25
-
-;; Unzip files that were downloaded into same directory, overwriting anything
-unzipName := A_ScriptDir "\ahkmon.zip"
-unzipLoc := A_ScriptDir
-Unz(unzipName, unzipLoc)
-GuiControl,, Progress, 50
 
 ;; Grab release notes + new version number
 oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
@@ -43,23 +41,38 @@ releaseVersion := (jsonResponse.tag_name)
 releaseVersion := SubStr(releaseVersion, 2)
 releaseNotes := (jsonResponse.body)
 releaseNotes := RegExReplace(releaseNotes, "\r\n", "`n")
+GuiControl,, Progress, 50
+
+;; Back up existing translation database before pulling new
+GuiControl,, Notes, Backing up existing translation database..
+FileCreateDir, %A_ScriptDir%\backup
+FileMove, %A_ScriptDir%\dqxtrl.db, %A_ScriptDir%\backup\dqxtrl_%releaseVersion%.db
+
+;; Unzip files that were downloaded into same directory, overwriting anything
+unzipName := A_ScriptDir "\ahkmon.zip"
+unzipLoc := A_ScriptDir
+Unz(unzipName, unzipLoc)
 GuiControl,, Progress, 75
 
 ;; Get current version locally from version file
 FileRead, currentVersion, version
 
-;; If the versions differ, run updater
+;; Compare local version with remote. If same, update was successful.
 if (releaseVersion = currentVersion)
 {
   GuiControl,, Progress, 100
   message := "UPDATE SUCCESSFUL!`n`nahkmon Version: " . releaseVersion . "`n`nRelease Notes:`n`n" . releaseNotes
-  msgBox % message
-  message := "ahkmon will now launch."
-  msgBox % message
+  GuiControl,, Notes, % message
   FileDelete, %A_ScriptDir%\ahkmon.zip  ;; Delete the old file
+  GuiControl, Enable, OK
+  Return
+
+ButtonOK:
   Run ahkmon.exe
   ExitApp
+
 }
+;; If versions are different, update failed. Make user aware and send them to github to download.
 else
 {
   GuiControl,, Progress, 100
@@ -67,9 +80,10 @@ else
   sleep 100
   FileRemoveDir, %A_ScriptDir%\tmp  ;; Remove /tmp folder
   message := "UPDATE FAILED! Version mismatch. Please update ahkmon manually."
-  msgBox % message
+  GuiControl,, Notes, % message
   FileDelete, %A_ScriptDir%\ahkmon.zip  ;; Delete the old file if it exists
   Run, https://github.com/jmctune/ahkmon/releases/latest
+  Sleep 5000
   ExitApp
 }
 
