@@ -48,7 +48,6 @@
           dialogText := RegExReplace(dialogText, "<br>", "`n`n")
           dialogText := RegExReplace(dialogText, "(<.+?>)", "")
           dialogText := StrReplace(dialogText, "「", "")
-          FileAppend, %dialogPatternResult%`n, memloc.txt
 
           ;; Determine which DeepL method to use.
           if (DeepLAPIEnable = 1)
