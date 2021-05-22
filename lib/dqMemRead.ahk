@@ -36,7 +36,13 @@
       ;; Start reading memory for dialog address.
       loop
       {
-        dialogPatternResult := dqx.processPatternScan(0x45000000,0x50000000, aAOBPattern*)
+        dialogPatternResult := dqx.processPatternScan(0x40000000,0x50000000, aAOBPattern*)
+
+        if (dialogPatternResult == 0)
+        {
+          dialogPatternResult := dqx.processPatternScan(,, aAOBPattern*)
+        }
+
         dialogBaseAddress := dialogPatternResult + 32 + 4
         dialogActualAddress := dqx.read(dialogBaseAddress, "UInt")
 
