@@ -6,23 +6,22 @@
     ;; Check if user has DeepL minimized. If so, open it and send it to the back of the z-axis.
     ;; If it's in the system tray and not open, alert the user and exit the app. Re-activating
     ;; the window doesn't work with DeepL - you just get a permanent black box until you relaunch.
-    WinGet, DeepLWindowState, MinMax, DeepL
-    if (DeepLWindowState != 0)
+    WinActivate, ahk_exe DeepL.exe
+    if !WinActive("ahk_exe DeepL.exe")
     {
-      DetectHiddenWindows Off
+      MsgBox DeepL is in your system tray, but not your taskbar, which makes it impossible for us to talk to it.`n`nOpen DeepL from the system tray and ensure it isn't minimized and try again.`n`nExiting app.
+      ExitApp
+    }
+    else
+      WinActivate, ahk_exe DQXGame.exe
 
-      if WinExist("DeepL")
-      {
-        WinActivate, ahk_exe DeepL.exe
-        sleep 50
-        WinSet, Bottom,,A
-        DetectHiddenWindows On
-      }
-      else
-      {
-        MsgBox Cannot find DeepL. Make sure it is open and visible on the taskbar and try again.
-        ExitApp
-      }
+    WinGet, DeepLWindowState, MinMax, DeepL
+    if (DeepLWindowState == -1)
+    {
+      WinRestore, DeepL
+      WinActivate, ahk_exe DeepL.exe
+      sleep 50
+      WinSet, Bottom,,A
     }
 
     ;; If HideDeepL enabled, moves the window completely off the screen so that it doesn't pop up
@@ -77,53 +76,49 @@
         Sleep 100
         ControlSend, Chrome_WidgetWin_01, ^v, ahk_class %class%
 
-        ;; If overlay or log is enabled
-        if ((Overlay = 1) or (Log = 1))
+        ;; Clear clipboard so we know when it changes
+        Clipboard =
+        sleep 25
+
+        Loop
         {
-          ;; Clear clipboard so we know when it changes
-          Clipboard =
-          sleep 25
-
-          Loop
+          ;; If DeepL takes too long to return a translation, time the attempt out.
+          if (A_Index > DeepLAttempts)
           {
-            ;; If DeepL takes too long to return a translation, time the attempt out.
-            if (A_Index > DeepLAttempts)
-            {
-              Gui, 2:Default
-              Gui, Font, cYellow Bold, %FontType%
-              GuiControl, Font, Clip
-              GuiControl, Text, Clip, DeepL did not return a translation in time.
-              Sleep 2000
-              Gui, Font, c%FontColor% Norm, %FontType%
-              GuiControl, Font, Clip
-              break
-            }
+            Gui, 2:Default
+            Gui, Font, cYellow Bold, %FontType%
+            GuiControl, Font, Clip
+            GuiControl, Text, Clip, DeepL did not return a translation in time.
+            Sleep 2000
+            Gui, Font, c%FontColor% Norm, %FontType%
+            GuiControl, Font, Clip
+            break
+          }
 
-            loading .= "."  ; Neat loading bar to let the user know translation is happening
-            GuiControl, 2:Text, Clip, %loading%
+          loading .= "."  ; Neat loading bar to let the user know translation is happening
+          GuiControl, 2:Text, Clip, %loading%
 
-            ;; If the clipboard is in use, force whatever has it to let go
-            if (DllCall("OpenClipboard", Ptr,A_ScriptHwnd))
-              DllCall("CloseClipboard")
+          ;; If the clipboard is in use, force whatever has it to let go
+          if (DllCall("OpenClipboard", Ptr,A_ScriptHwnd))
+            DllCall("CloseClipboard")
 
-            ControlClick, x%cNewW% y%cNewH%, ahk_class %class%,,,, NA 
-            ControlSend, Chrome_WidgetWin_01, {Tab}, ahk_class %class%
-            ControlSend, Chrome_WidgetWin_01, {Tab}, ahk_class %class%
-            ControlSend, Chrome_WidgetWin_01, {Enter}, ahk_class %class%
-            Sleep 300
-            clipboardContents := Clipboard
-          } Until clipboardContents
+          ControlClick, x%cNewW% y%cNewH%, ahk_class %class%,,,, NA 
+          ControlSend, Chrome_WidgetWin_01, {Tab}, ahk_class %class%
+          ControlSend, Chrome_WidgetWin_01, {Tab}, ahk_class %class%
+          ControlSend, Chrome_WidgetWin_01, {Enter}, ahk_class %class%
+          Sleep 300
+          clipboardContents := Clipboard
+        } Until clipboardContents
 
-          ;; Reset loading bar
-          loading :=
+        ;; Reset loading bar
+        loading :=
 
-          ;; Write translated text to overlay
-          GuiControl, MoveDraw, Clip,
-          GuiControl, 2:Text, Clip, %clipboardContents%
+        ;; Write translated text to overlay
+        GuiControl, MoveDraw, Clip,
+        GuiControl, 2:Text, Clip, %clipboardContents%
 
-          if (Log = 1)
-            FileAppend, %sentence%|%clipboardContents%||||||||||||||||||||||`n, textdb.csv, UTF-8
-        }
+        if (Log = 1)
+          FileAppend, %sentence%|%clipboardContents%||||||||||||||||||||||`n, textdb.csv, UTF-8
       }
 
       else {
@@ -158,10 +153,10 @@
 
     ;; Re-focus DQX Window
     WinActivate, ahk_exe DQXGame.exe
-
     return
   }
 
   else
-    msgBox Unable to locate DeepL Translate. Make sure it's installed and running, then try again.
+    msgBox Unable to locate DeepL Translate. Make sure it's installed and running, then try again.`n`nExiting app.
+    ExitApp
 }

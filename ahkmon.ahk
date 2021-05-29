@@ -10,7 +10,6 @@
 #Include <classMemory>
 #Include <dqMemRead>
 SendMode Input
-DetectHiddenWindows, On
 
 ;=== Auto update ============================================================
 ;; Get latest version number from Github
@@ -50,7 +49,6 @@ if FileExist(tmpLoc)
 ;=== Load Start GUI settings from file ======================================
 IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
-IniRead, Overlay, settings.ini, overlay, Overlay, 1
 IniRead, OCR, settings.ini, general, OCR, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, ResizeOverlay, settings.ini, overlay, ResizeOverlay, 0
@@ -74,19 +72,20 @@ IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
 ;=== Create Start GUI =======================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
-Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API|About
+Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API|Help|About
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/General-tab">General Settings Documentation</a>
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
 Gui, Add, Link,, Language you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
 Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
 Gui, Add, CheckBox, vJoystickEnabled Checked%JoystickEnabled%, Do you play with a controller?
-Gui, Add, CheckBox, vOverlay Checked%Overlay%, Enable overlay? (Toggle with F12)
 Gui, Add, CheckBox, vOCR Checked%OCR%, Enable Optical Character Recognition (OCR)? (Ctrl+Q)
 Gui, Add, Button, gSave, Run ahkmon
 
 ;; Overlay settings tab
 Gui, Tab, Overlay Settings
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Overlay Settings Documentation</a>
 Gui, Add, Text,, F12 will turn the overlay on/off.
 Gui, Add, CheckBox, vResizeOverlay Checked%ResizeOverlay%, Allow resize of overlay?
 Gui, Add, CheckBox, vAutoHideOverlay Checked%AutoHideOverlay%, Automatically hide overlay?
@@ -111,6 +110,7 @@ Gui, Add, ComboBox, vFontType, %FontType%||Calibri|Consolas|Courier New|Inconsol
 
 ;; Advanced tab
 Gui, Tab, Advanced
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Advanced-tab">Advanced Settings Documentation</a>
 Gui, Add, Text,, This tab is for users that struggle with the default settings.
 Gui, Add, CheckBox, vHideDeepL Checked%HideDeepL%, Hide DeepL?
 Gui, Add, Button, gResetDeepLPosition, Reset DeepL Position
@@ -125,14 +125,20 @@ Gui, Add, Text, w+300 vDatabaseStatusMessage,
 
 ;; DeepL API tab
 Gui, Tab, DeepL API
-Gui, Add, Text,, This section is for those who created a DeepL Pro account.`n`nThis allows you to use ahkmon without the DeepL desktop`nclient, while instead, interacting directly with DeepL's API.`n`nNote that signing up for a DeepL API account`nrequires a valid credit card.`n`nDo not enable this option if you do not have DeepL API Free or Pro.`n
-Gui, Add, CheckBox, vDeepLAPIEnable Checked%DeepLAPIEnable%, Enable DeepL API Requests?
-Gui, Add, CheckBox, vDeepLApiPro Checked%DeepLApiPro%, Do you have DeepL API Pro?
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/DeepL-API-tab">DeepL API Documentation</a>
+Gui, Add, Text,, This section is for those who created a DeepL Pro account.`n`nThis allows you to use ahkmon without the DeepL desktop`nclient, while instead, interacting directly with DeepL's API.`n`nNote that signing up for a DeepL API account`nrequires a valid credit card.
+Gui, Add, Link,, <a href="https://www.deepl.com/pro#developer">Sign up for a FREE DeepL Developer API account here</a>
+Gui, Add, CheckBox, vDeepLAPIEnable Checked%DeepLAPIEnable%, Enable DeepL API Requests?`n(You signed up for a`nfree DeepL Developer API account)
+Gui, Add, CheckBox, vDeepLApiPro Checked%DeepLApiPro%, Use DeepL API Pro APIs?`n(You paid for DeepL)
 Gui, Add, Text,, DeepL API Key (Found in your account page):
 Gui, Add, Text, y+2 cRed, DO NOT SHARE THIS KEY WITH ANYONE
 Gui, Add, Edit, r1 vDeepLAPIKey w135, %DeepLAPIKey%
 Gui, Add, Button, gDeepLWordsLeft, Check remaining character count
 Gui, Add, Text, w+300 vDeepLWords, 
+
+;; Help tab
+Gui, Tab, Help
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Troubleshooting">Troubleshooting ahkmon</a>
 
 ;; About tab
 Gui, Tab, About
@@ -221,7 +227,6 @@ Save:
   Gui, Submit, Hide
   IniWrite, %Language%, settings.ini, general, Language
   IniWrite, %Log%, settings.ini, general, Log
-  IniWrite, %Overlay%, settings.ini, overlay, Overlay
   IniWrite, %ShowOnTaskbar%, settings.ini, overlay, ShowOnTaskbar
   IniWrite, %OCR%, settings.ini, general, OCR
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
@@ -267,7 +272,6 @@ loop 32
   JoystickKeys .= JoystickNumber . "Joy" . A_Index . ","
 
 ;=== Global vars we'll be using elsewhere ====================================
-Global Overlay
 Global Log
 Global TranslateType
 Global FontType
@@ -288,34 +292,30 @@ Global OverlayHeight
 Global alteredOverlayWidth
 Global DeepLApiPro
 
-;=== Open overlay if enabled =================================================
-if (Overlay = 1)
-{
-  overlayShow = 1
-  alteredOverlayWidth := OverlayWidth - 50
-  Gui, 2:Default
-  Gui, Color, %OverlayColor%  ; Sets GUI background to black
-  Gui, Font, s%FontSize% c%FontColor%, %FontType%
-  Gui, Add, Text, +0x0 vClip h%OverlayHeight% w%alteredOverlayWidth% 
-  Gui, Show, w%OverlayWidth% h%OverlayHeight% x%OverlayPosX% y%OverlayPosY%
-  Winset, Transparent, %OverlayTransparency%, A
-  Gui, +LastFound
+;=== Open overlay ============================================================
+overlayShow = 1
+alteredOverlayWidth := OverlayWidth - 50
+Gui, 2:Default
+Gui, Color, %OverlayColor%  ; Sets GUI background to black
+Gui, Font, s%FontSize% c%FontColor%, %FontType%
+Gui, Add, Text, +0x0 vClip h%OverlayHeight% w%alteredOverlayWidth% 
+Gui, Show, w%OverlayWidth% h%OverlayHeight% x%OverlayPosX% y%OverlayPosY%
+Winset, Transparent, %OverlayTransparency%, A
+Gui, +LastFound
 
-  OnMessage(0x201,"WM_LBUTTONDOWN")  ; Allows dragging the window
+OnMessage(0x201,"WM_LBUTTONDOWN")  ; Allows dragging the window
 
-  flags := "-caption +alwaysontop -Theme -DpiScale -Border "
+flags := "-caption +alwaysontop -Theme -DpiScale -Border "
 
-  if (ResizeOverlay = 1)
-    customFlags := "+Resize -MaximizeBox "
+if (ResizeOverlay = 1)
+  customFlags := "+Resize -MaximizeBox "
 
-  if (ShowOnTaskbar = 0) 
-    customFlags .= "+ToolWindow "
-  else
-    customFlags .= "-ToolWindow "
+if (ShowOnTaskbar = 0) 
+  customFlags .= "+ToolWindow "
+else
+  customFlags .= "-ToolWindow "
 
-  Gui, % flags . customFlags
-
-}
+Gui, % flags . customFlags
 
 ;=== Miscellaneous functions =================================================
 WM_LBUTTONDOWN(wParam,lParam,msg,hwnd) {
