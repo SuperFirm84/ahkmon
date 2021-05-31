@@ -1,17 +1,17 @@
 ﻿DeepLAPI(dqDialogText)
 {
+  Gui, 2:Default
+
   ;; Open database connection.
   dbFileName := A_ScriptDir . "\dqxtrl.db"
   db := New SQLiteDB
 
   ;; Show overlay if AutoHideOverlay enabled.
   if (AutoHideOverlay = 1)
-  {
-    Gui, 2:Default
     Gui, Show, NA
-  }
 
   ;; Iterate through each line returned.
+  fullDialog :=
   for index, sentence in StrSplit(dqDialogText, "`n`n", "`r") {
 
     ;; See if we have an entry available to grab from the database before sending the request to DeepL.
@@ -29,7 +29,6 @@
     ;; If no matching line was found in the database, query DeepL.
     if !result
     {
-
       ;; If not found locally, make a call to DeepL API to get
       ;; translated text.
       StringUpper, languageUpper, Language
@@ -98,39 +97,52 @@
 
       ;; Remove escaped single quotes before sending to overlay.
       translatedText := StrReplace(translatedText, "''","'")
-      GuiControl, MoveDraw, Clip,
-      GuiControl, 2:Text, Clip, %translatedText%
+      
+      if (ShowFullDialog = 1)
+      {
+        fullDialog .= translatedText "`n`n"
+        GuiControl, Text, Clip, %fullDialog%
+      }
+      else
+      {
+        GuiControl, Text, Clip, %translatedText%
+      }
     }
 
-    else 
-    {
-      GuiControl, MoveDraw, Clip,
-      GuiControl, 2:Text, Clip, %result%
-    }
-
-    ;; Determine whether to listen for joystick or keyboard keys
-    ;; to continue the dialog.
-    if (JoystickEnabled = 1)
-    {
-      WinActivate, ahk_class AutoHotkeyGUI
-      Input := GetKeyPress(JoystickKeys)
-    }
     else
     {
-      Input := GetKeyPress(KeyboardKeys)
+      if (ShowFullDialog = 1)
+      {
+        fullDialog .= result "`n`n"
+        GuiControl, Text, Clip, %fullDialog%
+      }
+      else
+      {
+        GuiControl, Text, Clip, %result%
+      }
     }
+    
+    if (ShowFullDialog != 1)
+    {
+      ;; Determine whether to listen for joystick or keyboard keys
+      ;; to continue the dialog.
+      if (JoystickEnabled = 1)
+      {
+        WinActivate, ahk_class AutoHotkeyGUI
+        Input := GetKeyPress(JoystickKeys)
+      }
+      else
+      {
+        Input := GetKeyPress(KeyboardKeys)
+      }
+    }
+
+    if (Log = 1)
+      FileAppend, JP: %sentence%`nEN: %result%`n`n, txtout.txt, UTF-8
   }
 
   ;; Close database connection.
   db.CloseDB()
-
-  ;; Clear + Hide overlay if AutoHideOverlay enabled.
-  if (AutoHideOverlay = 1)
-  {
-    Gui, 2:Default
-    Gui, Hide
-    GuiControl, Text, Clip,
-  }
 
   return
 }

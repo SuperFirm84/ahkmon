@@ -6,6 +6,7 @@
     ;; Check if user has DeepL minimized. If so, open it and send it to the back of the z-axis.
     ;; If it's in the system tray and not open, alert the user and exit the app. Re-activating
     ;; the window doesn't work with DeepL - you just get a permanent black box until you relaunch.
+    Gui, 2:Default
     WinActivate, ahk_exe DeepL.exe
     if !WinActive("ahk_exe DeepL.exe")
     {
@@ -35,11 +36,9 @@
 
     ;; Show overlay if AutoHideOverlay enabled
     if (AutoHideOverlay = 1)
-    {
-      Gui, 2:Default
       Gui, Show, NA
-    }
 
+    fullDialog := 
     for index, sentence in StrSplit(dqDialogText, "`n`n", "`r")
     {
       ;; See if we have an entry available to grab from before sending the request to DeepL.
@@ -78,14 +77,13 @@
 
         ;; Clear clipboard so we know when it changes
         Clipboard =
-        sleep 25
+        sleep 100
 
         Loop
         {
           ;; If DeepL takes too long to return a translation, time the attempt out.
-          if (A_Index > DeepLAttempts)
+          if (A_Index > 15)
           {
-            Gui, 2:Default
             Gui, Font, cYellow Bold, %FontType%
             GuiControl, Font, Clip
             GuiControl, Text, Clip, DeepL did not return a translation in time.
@@ -95,13 +93,11 @@
             break
           }
 
-          loading .= "."  ; Neat loading bar to let the user know translation is happening
-          GuiControl, 2:Text, Clip, %loading%
-
           ;; If the clipboard is in use, force whatever has it to let go
           if (DllCall("OpenClipboard", Ptr,A_ScriptHwnd))
             DllCall("CloseClipboard")
 
+          ;; Click in the top left corner of DeepL to reset our tab position
           ControlClick, x%cNewW% y%cNewH%, ahk_class %class%,,,, NA 
           ControlSend, Chrome_WidgetWin_01, {Tab}, ahk_class %class%
           ControlSend, Chrome_WidgetWin_01, {Tab}, ahk_class %class%
@@ -110,46 +106,51 @@
           clipboardContents := Clipboard
         } Until clipboardContents
 
-        ;; Reset loading bar
-        loading :=
-
-        ;; Write translated text to overlay
-        GuiControl, MoveDraw, Clip,
-        GuiControl, 2:Text, Clip, %clipboardContents%
-
-        if (Log = 1)
-          FileAppend, %sentence%|%clipboardContents%||||||||||||||||||||||`n, textdb.csv, UTF-8
+        if (ShowFullDialog = 1)
+        {
+          fullDialog .= clipboardContents "`n`n"
+          GuiControl, Text, Clip, %fullDialog%
+        }
+        else
+        {
+          GuiControl, Text, Clip, %clipboardContents%
+        }
       }
 
-      else {
-        Gui, 2:Default
-        GuiControl, MoveDraw, Clip,
-        GuiControl, 2:Text, Clip, %result%
-      }
-
-      ;; Determine whether to listen for joystick or keyboard keys
-      ;; to continue the dialog
-      if (JoystickEnabled = 1)
-      {
-        WinActivate, ahk_class AutoHotkeyGUI
-        Input := GetKeyPress(JoystickKeys)
-      }
+      ;; If we found a result in the database, use that instead
       else
       {
-        Input := GetKeyPress(KeyboardKeys)
+        if (ShowFullDialog = 1)
+        {
+          fullDialog .= result "`n`n"
+          GuiControl, Text, Clip, %fullDialog%
+        }
+        else
+        {
+          GuiControl, Text, Clip, %result%
+        }
       }
+
+      if (ShowFullDialog != 1)
+      {
+        ;; Determine whether to listen for joystick or keyboard keys to continue the dialog.
+        if (JoystickEnabled = 1)
+        {
+          WinActivate, ahk_class AutoHotkeyGUI
+          Input := GetKeyPress(JoystickKeys)
+        }
+        else
+        {
+          Input := GetKeyPress(KeyboardKeys)
+        }
+      }
+
+      if (Log = 1)
+        FileAppend, JP: %sentence%`nEN: %clipboardContents%`n`n, txtout.txt, UTF-8
     }
 
     ;; Close database connection
     db.CloseDB()
-
-    ;; Clear + Hide overlay if AutoHideOverlay enabled
-    if (AutoHideOverlay = 1)
-    {
-      Gui, 2:Default
-      Gui, Hide
-      GuiControl, Text, Clip,
-    }
 
     ;; Re-focus DQX Window
     WinActivate, ahk_exe DQXGame.exe

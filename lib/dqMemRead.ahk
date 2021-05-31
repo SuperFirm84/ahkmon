@@ -36,11 +36,20 @@
       ;; Start reading memory for dialog address.
       loop
       {
-        dialogPatternResult := dqx.processPatternScan(0x40000000,0x50000000, aAOBPattern*)
+        dialogPatternResult := dqx.processPatternScan(0x20000000,0x60000000, aAOBPattern*)
 
         if (dialogPatternResult == 0)
         {
-          dialogPatternResult := dqx.processPatternScan(,, aAOBPattern*)
+          Gui, 2:Default
+          if (AutoHideOverlay = 1)
+          {
+            Gui, Hide
+            GuiControl, Text, Clip,
+          }
+          else
+          {
+            GuiControl, Text, Clip,
+          }
         }
 
         dialogBaseAddress := dialogPatternResult + 32 + 4

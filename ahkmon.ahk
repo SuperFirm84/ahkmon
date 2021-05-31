@@ -63,8 +63,8 @@ IniRead, FontType, settings.ini, overlay, FontType, Arial
 IniRead, OverlayPosX, settings.ini, overlay, OverlayPosX, 0
 IniRead, OverlayPosY, settings.ini, overlay, OverlayPosY, 0
 IniRead, OverlayTransparency, settings.ini, overlay, OverlayTransparency, 255
+IniRead, ShowFullDialog, settings.ini, advanced, ShowFullDialog, 0
 IniRead, HideDeepL, settings.ini, advanced, HideDeepL, 0
-IniRead, DeepLAttempts, settings.ini, advanced, DeepLAttempts, 25
 IniRead, DeepLAPIEnable, settings.ini, deepl, DeepLAPIEnable, 0
 IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
@@ -79,7 +79,6 @@ Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
 Gui, Add, Link,, Language you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
 Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
-Gui, Add, CheckBox, vJoystickEnabled Checked%JoystickEnabled%, Do you play with a controller?
 Gui, Add, CheckBox, vOCR Checked%OCR%, Enable Optical Character Recognition (OCR)? (Ctrl+Q)
 Gui, Add, Button, gSave, Run ahkmon
 
@@ -112,10 +111,9 @@ Gui, Add, ComboBox, vFontType, %FontType%||Calibri|Consolas|Courier New|Inconsol
 Gui, Tab, Advanced
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Advanced-tab">Advanced Settings Documentation</a>
 Gui, Add, Text,, This tab is for users that struggle with the default settings.
+Gui, Add, CheckBox, vShowFullDialog Checked%ShowFullDialog%, Show all text at once instead of line by line?
 Gui, Add, CheckBox, vHideDeepL Checked%HideDeepL%, Hide DeepL?
 Gui, Add, Button, gResetDeepLPosition, Reset DeepL Position
-Gui, Add, Text, vDeepLAttemptsInfo, DeepL Desktop client translate attempts before giving up:
-Gui, Add, Slider, vDeepLAttempts Range10-50 TickInterval1 Page1 Line1 Tooltip, %DeepLAttempts%
 Gui, Add, Text,, Uploads your translation log and copies a link`nto your clipboard.
 Gui, Add, Button, gUploadLogs, Upload Log
 Gui, Add, Text, w+300 vLogLink, 
@@ -239,8 +237,8 @@ Save:
   IniWrite, %FontSize%, settings.ini, overlay, FontSize
   IniWrite, %FontType%, settings.ini, overlay, FontType
   IniWrite, %OverlayTransparency%, settings.ini, overlay, OverlayTransparency
+  IniWrite, %ShowFullDialog%, settings.ini, advanced, ShowFullDialog
   IniWrite, %HideDeepL%, settings.ini, advanced, HideDeepL
-  IniWrite, %DeepLAttempts%, settings.ini, advanced, DeepLAttempts
   IniWrite, %DeepLAPIEnable%, settings.ini, deepl, DeepLAPIEnable
   IniWrite, %DeepLApiPro%, settings.ini, deepl, DeepLApiPro
   IniWrite, %DeepLAPIKey%, settings.ini, deepl, DeepLAPIKey
@@ -260,8 +258,9 @@ if (JoystickEnabled = 1)
     }
     if JoystickNumber <= 0
     {
-      MsgBox Could not find a valid joystick. Exiting.
-      ExitApp
+      MsgBox Could not find a valid joystick. Enabling ShowFullDialog instead.
+      ShowFullDialog := 1
+      IniWrite, %ShowFullDialog%, settings.ini, advanced, ShowFullDialog
     }
 }
 
@@ -273,10 +272,8 @@ loop 32
 
 ;=== Global vars we'll be using elsewhere ====================================
 Global Log
-Global TranslateType
 Global FontType
 Global FontColor
-Global DeepLAttempts
 Global HideDeepL
 Global ClipboardWaitTime
 Global DeepLAPIEnable
@@ -291,14 +288,20 @@ Global AutoHideOverlay
 Global OverlayHeight
 Global alteredOverlayWidth
 Global DeepLApiPro
+Global ShowFullDialog
 
 ;=== Open overlay ============================================================
 overlayShow = 1
-alteredOverlayWidth := OverlayWidth - 50
+alteredOverlayWidth := OverlayWidth - 37
 Gui, 2:Default
 Gui, Color, %OverlayColor%  ; Sets GUI background to black
 Gui, Font, s%FontSize% c%FontColor%, %FontType%
-Gui, Add, Text, +0x0 vClip h%OverlayHeight% w%alteredOverlayWidth% 
+
+if (ShowFullDialog = 1)
+  Gui, Add, Edit, -E0x200 +0x0 vClip +ReadOnly -WantCtrlA -WantReturn -WantTab +BackgroundTrans -Border h%OverlayHeight% w%alteredOverlayWidth%
+else
+  Gui, Add, Text, +0x0 vClip h%OverlayHeight% w%alteredOverlayWidth%
+  
 Gui, Show, w%OverlayWidth% h%OverlayHeight% x%OverlayPosX% y%OverlayPosY%
 Winset, Transparent, %OverlayTransparency%, A
 Gui, +LastFound
