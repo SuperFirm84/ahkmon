@@ -45,11 +45,8 @@
       result :=
       query := "SELECT " . Language . " FROM dialog WHERE jp = '" . sentence . "';"
 
-      if !db.OpenDB(dbFileName)
-        MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
-
-      if !db.GetTable(query, result)
-        MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
+      if db.OpenDB(dbFileName)
+      if db.GetTable(query, result)
 
       result := result.Rows[1,1]
 

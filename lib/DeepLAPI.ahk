@@ -14,17 +14,24 @@
   fullDialog :=
   for index, sentence in StrSplit(dqDialogText, "`n`n", "`r") {
 
-    ;; See if we have an entry available to grab from the database before sending the request to DeepL.
-    result :=
-    query := "SELECT " . Language . " FROM dialog WHERE jp = '" . sentence . "';"
+    if InStr(sentence, "'")
+    {
+      result :=
+    }
+    else
+    {
+      ;; See if we have an entry available to grab from the database before sending the request to DeepL.
+      result :=
+      query := "SELECT " . Language . " FROM dialog WHERE jp = '" . sentence . "';"
 
-    if !db.OpenDB(dbFileName)
-      MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
+      if !db.OpenDB(dbFileName)
+        MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
 
-    if !db.GetTable(query, result)
-      MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
+      if !db.GetTable(query, result)
+        MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
 
-    result := result.Rows[1,1]
+      result := result.Rows[1,1]
+    }
 
     ;; If no matching line was found in the database, query DeepL.
     if !result
@@ -47,7 +54,6 @@
 
       oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
       oWhr.Open("POST", url, 0)
-
       oWhr.SetRequestHeader("User-Agent", "DQXTranslator")
       oWhr.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
       oWhr.Send(Body)
@@ -67,6 +73,7 @@
         translatedText := StrReplace(translatedText, "ã"," ")
 
       translatedText := StrReplace(translatedText, "'","''")  ;; Escape single quotes found in contractions before sending to database
+      sentence := StrReplace(sentence, "'", "''")
 
       ;; Write new entry to the database if it doesn't exist.
       ;; If we're in this block, jp was found, but translation for another language
@@ -76,22 +83,14 @@
       updateQuery := "UPDATE dialog SET " . Language . " = '" . translatedText . "' WHERE jp = '" . sentence . "'"
 
       db.Exec("BEGIN TRANSACTION;")
-
-      if !db.GetTable(selectQuery, result)
-        MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
+      db.GetTable(selectQuery, result)
 
       result := result.Rows[1,1]
 
       if !result 
-      {
-        if !db.Exec(insertQuery)
-          MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
-      }
+        db.Exec(insertQuery)
       else
-      {
-        if !db.Exec(updatequery)
-          MsgBox, 16, SQLite Error, % "Msg:`t" . db.ErrorMsg . "`nCode:`t" . db.ErrorCode
-      }
+        db.Exec(updatequery)
 
       db.Exec("COMMIT TRANSACTION;")
 
