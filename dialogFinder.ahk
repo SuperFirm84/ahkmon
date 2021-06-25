@@ -45,6 +45,7 @@ Global DeepLAPIEnable
 Global DeepLAPIKey
 Global Language
 Global DeepLApiPro
+Global HideDeepL
 
 ;=== Controller Configuration ==============================================
 if (JoystickEnabled = 1)

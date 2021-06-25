@@ -43,6 +43,7 @@ Global DeepLAPIEnable
 Global DeepLAPIKey
 Global Language
 Global DeepLApiPro
+Global HideDeepL
 
 ;; === General Quest Text ====================================================
 questAddress := 0x01E5A440
