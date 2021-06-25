@@ -3,13 +3,13 @@
 #SingleInstance force
 #Include <DeepLDesktop>
 #Include <DeepLAPI>
-#Include <ocrFunctions>
 #Include <JSON>
 #Include <SQLiteDB>
-#Include <createFormData>
-#Include <classMemory>
-#Include <dqMemRead>
 SendMode Input
+
+;=== Close any existing finder windows ======================================
+Process, Close, questFinder.exe
+Process, Close, dialogFinder.exe
 
 ;=== Auto update ============================================================
 ;; Get latest version number from Github
@@ -49,30 +49,41 @@ if FileExist(tmpLoc)
 ;=== Load Start GUI settings from file ======================================
 IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
-IniRead, OCR, settings.ini, general, OCR, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
-IniRead, ResizeOverlay, settings.ini, overlay, ResizeOverlay, 0
-IniRead, AutoHideOverlay, settings.ini, overlay, AutoHideOverlay, 0
-IniRead, ShowOnTaskbar, settings.ini, overlay, ShowOnTaskbar, 0
-IniRead, OverlayWidth, settings.ini, overlay, OverlayWidth, 930
-IniRead, OverlayHeight, settings.ini, overlay, OverlayHeight, 150
-IniRead, OverlayColor, settings.ini, overlay, OverlayColor, 000000
-IniRead, FontColor, settings.ini, overlay, FontColor, White
-IniRead, FontSize, settings.ini, overlay, FontSize, 16
-IniRead, FontType, settings.ini, overlay, FontType, Arial
-IniRead, OverlayPosX, settings.ini, overlay, OverlayPosX, 0
-IniRead, OverlayPosY, settings.ini, overlay, OverlayPosY, 0
-IniRead, OverlayTransparency, settings.ini, overlay, OverlayTransparency, 255
+IniRead, dialogResizeOverlay, settings.ini, dialogoverlay, dialogResizeOverlay, 0
+IniRead, dialogAutoHideOverlay, settings.ini, dialogoverlay, dialogAutoHideOverlay, 0
+IniRead, dialogShowOnTaskbar, settings.ini, dialogoverlay, dialogShowOnTaskbar, 0
+IniRead, dialogOverlayWidth, settings.ini, dialogoverlay, dialogOverlayWidth, 930
+IniRead, dialogOverlayHeight, settings.ini, dialogoverlay, dialogOverlayHeight, 150
+IniRead, dialogOverlayColor, settings.ini, dialogoverlay, dialogOverlayColor, 000000
+IniRead, dialogFontColor, settings.ini, dialogoverlay, dialogFontColor, White
+IniRead, dialogFontSize, settings.ini, dialogoverlay, dialogFontSize, 16
+IniRead, dialogFontType, settings.ini, dialogoverlay, dialogFontType, Arial
+IniRead, dialogOverlayPosX, settings.ini, dialogoverlay, dialogOverlayPosX, 0
+IniRead, dialogOverlayPosY, settings.ini, dialogoverlay, dialogOverlayPosY, 0
+IniRead, dialogOverlayTransparency, settings.ini, dialogoverlay, dialogOverlayTransparency, 255
+IniRead, questResizeOverlay, settings.ini, questoverlay, questResizeOverlay, 0
+IniRead, questAutoHideOverlay, settings.ini, questoverlay, questAutoHideOverlay, 0
+IniRead, questShowOnTaskbar, settings.ini, questoverlay, questShowOnTaskbar, 0
+IniRead, questOverlayWidth, settings.ini, questoverlay, questOverlayWidth, 930
+IniRead, questOverlayHeight, settings.ini, questoverlay, questOverlayHeight, 150
+IniRead, questOverlayColor, settings.ini, questoverlay, questOverlayColor, 000000
+IniRead, questFontColor, settings.ini, questoverlay, questFontColor, White
+IniRead, questFontSize, settings.ini, questoverlay, questFontSize, 16
+IniRead, questFontType, settings.ini, questoverlay, questFontType, Arial
+IniRead, questOverlayPosX, settings.ini, questoverlay, questOverlayPosX, 0
+IniRead, questOverlayPosY, settings.ini, questoverlay, questOverlayPosY, 0
+IniRead, questOverlayTransparency, settings.ini, questoverlay, questOverlayTransparency, 255
 IniRead, ShowFullDialog, settings.ini, advanced, ShowFullDialog, 0
 IniRead, HideDeepL, settings.ini, advanced, HideDeepL, 0
 IniRead, DeepLAPIEnable, settings.ini, deepl, DeepLAPIEnable, 0
 IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
 
-;=== Create Start GUI =======================================================
+;=== Create Start GUI =====================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
-Gui, Add, Tab3,, General|Overlay Settings|Advanced|DeepL API|Help|About
+Gui, Add, Tab3,, General|Dialog Overlay|Quest Overlay|Advanced|DeepL API|Help|About
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/General-tab">General Settings Documentation</a>
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
@@ -80,33 +91,55 @@ Gui, Add, Link,, Language you want to translate text to:`n<a href="https://www.a
 Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
 Gui, Add, CheckBox, vJoystickEnabled Checked%JoystickEnabled%, Do you play with a controller?
-Gui, Add, CheckBox, vOCR Checked%OCR%, Enable Optical Character Recognition (OCR)? (Ctrl+Q)
 Gui, Add, Button, gSave, Run ahkmon
 
-;; Overlay settings tab
-Gui, Tab, Overlay Settings
-Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Overlay Settings Documentation</a>
-Gui, Add, Text,, F12 will turn the overlay on/off.
-Gui, Add, CheckBox, vResizeOverlay Checked%ResizeOverlay%, Allow resize of overlay?
-Gui, Add, CheckBox, vAutoHideOverlay Checked%AutoHideOverlay%, Automatically hide overlay?
-Gui, Add, CheckBox, vShowOnTaskbar Checked%ShowOnTaskbar%, Show overlay on taskbar when active?
-Gui, Add, Text,, Overlay transparency (lower = more transparent):
-Gui, Add, Slider, vOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %OverlayTransparency%
-Gui, Add, Text, vOverlayColorInfo, Overlay background color (use hex color codes):
-Gui, Add, ComboBox, vOverlayColor, %OverlayColor%||
-Gui, Add, Text, vOverlayWidthInfo, Initial overlay width:
+;; Dialog Overlay settings tab
+Gui, Tab, Dialog Overlay
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Dialog Overlay Documentation</a>
+Gui, Add, CheckBox, vdialogResizeOverlay Checked%dialogResizeOverlay%, Allow resize of Dialog overlay?
+Gui, Add, CheckBox, vdialogAutoHideOverlay Checked%dialogAutoHideOverlay%, Automatically hide Dialog overlay?
+Gui, Add, CheckBox, vdialogShowOnTaskbar Checked%dialogShowOnTaskbar%, Show Dialog overlay on taskbar when active?
+Gui, Add, Text,, Dialog overlay transparency (lower = more transparent):
+Gui, Add, Slider, vdialogOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %dialogOverlayTransparency%
+Gui, Add, Text, vdialogOverlayColorInfo, Dialog overlay background color (use hex color codes):
+Gui, Add, ComboBox, vdialogOverlayColor, %dialogOverlayColor%||
+Gui, Add, Text, vdialogOverlayWidthInfo, Initial Dialog overlay width:
 Gui, Add, Edit
-Gui, Add, UpDown, vOverlayWidth Range100-2000, %OverlayWidth%
-Gui, Add, Text, vOverlayHeightInfo, Initial overlay height:
+Gui, Add, UpDown, vdialogOverlayWidth Range100-2000, %dialogOverlayWidth%
+Gui, Add, Text, vdialogOverlayHeightInfo, Initial Dialog overlay height:
 Gui, Add, Edit
-Gui, Add, UpDown, vOverlayHeight Range100-2000, %OverlayHeight%
-Gui, Add, Text, vFontColorInfo, Overlay font color:
-Gui, Add, ComboBox, vFontColor, %FontColor%||Yellow|Red|Green|Blue|Black|Gray|Maroon|Purple|Fuchsia|Lime|Olive|Navy|Teal|Aqua
-Gui, Add, Text,, Overlay font size:
+Gui, Add, UpDown, vdialogOverlayHeight Range100-2000, %dialogOverlayHeight%
+Gui, Add, Text, vdialogFontColorInfo, Dialog overlay font color:
+Gui, Add, ComboBox, vdialogFontColor, %dialogFontColor%||Yellow|Red|Green|Blue|Black|Gray|Maroon|Purple|Fuchsia|Lime|Olive|Navy|Teal|Aqua
+Gui, Add, Text,, Dialog overlay font size:
 Gui, Add, Edit
-Gui, Add, UpDown, vFontSize Range8-30, %FontSize%
-Gui, Add, Text, vFontInfo, Select a font or enter a custom font available`n on your system to use with the overlay:
-Gui, Add, ComboBox, vFontType, %FontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
+Gui, Add, UpDown, vdialogFontSize Range8-30, %dialogFontSize%
+Gui, Add, Text, vdialogFontInfo, Select a font or enter a custom font available`non your system to use with the Dialog overlay:
+Gui, Add, ComboBox, vdialogFontType, %dialogFontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
+
+;; Quest Overlay settings tab
+Gui, Tab, Quest Overlay
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Quest Overlay Documentation</a>
+Gui, Add, CheckBox, vquestResizeOverlay Checked%questquestResizeOverlay%, Allow resize of Quest overlay?
+Gui, Add, CheckBox, vquestAutoHideOverlay Checked%questAutoHideOverlay%, Automatically hide Quest overlay?
+Gui, Add, CheckBox, vquestShowOnTaskbar Checked%questShowOnTaskbar%, Show Quest overlay on taskbar when active?
+Gui, Add, Text,, Quest overlay transparency (lower = more transparent):
+Gui, Add, Slider, vquestOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %questOverlayTransparency%
+Gui, Add, Text, vquestOverlayColorInfo, Quest overlay background color (use hex color codes):
+Gui, Add, ComboBox, vquestOverlayColor, %questOverlayColor%||
+Gui, Add, Text, vquestOverlayWidthInfo, Initial Quest overlay width:
+Gui, Add, Edit
+Gui, Add, UpDown, vquestOverlayWidth Range100-2000, %questOverlayWidth%
+Gui, Add, Text, vquestOverlayHeightInfo, Initial Quest overlay height:
+Gui, Add, Edit
+Gui, Add, UpDown, vquestOverlayHeight Range100-2000, %questOverlayHeight%
+Gui, Add, Text, vquestFontColorInfo, Quest overlay font color:
+Gui, Add, ComboBox, vquestFontColor, %questFontColor%||Yellow|Red|Green|Blue|Black|Gray|Maroon|Purple|Fuchsia|Lime|Olive|Navy|Teal|Aqua
+Gui, Add, Text,, Quest overlay font size:
+Gui, Add, Edit
+Gui, Add, UpDown, vquestFontSize Range8-30, %questFontSize%
+Gui, Add, Text, vquestFontInfo, Select a font or enter a custom font available`non your system to use with the Quest overlay:
+Gui, Add, ComboBox, vquestFontType, %questFontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
 
 ;; Advanced tab
 Gui, Tab, Advanced
@@ -115,8 +148,6 @@ Gui, Add, Text,, This tab is for users that struggle with the default settings.
 Gui, Add, CheckBox, vShowFullDialog Checked%ShowFullDialog%, Show all text at once instead of line by line?
 Gui, Add, CheckBox, vHideDeepL Checked%HideDeepL%, Hide DeepL?
 Gui, Add, Button, gResetDeepLPosition, Reset DeepL Position
-Gui, Add, Text,, Uploads your translation log and copies a link`nto your clipboard.
-Gui, Add, Button, gUploadLogs, Upload Log
 Gui, Add, Text, w+300 vLogLink, 
 Gui, Add, Text,, Download latest database`n(this will overwrite your current database!)
 Gui, Add, Button, gDownloadDb, Download Database
@@ -125,7 +156,7 @@ Gui, Add, Text, w+300 vDatabaseStatusMessage,
 ;; DeepL API tab
 Gui, Tab, DeepL API
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/DeepL-API-tab">DeepL API Documentation</a>
-Gui, Add, Text,, This section is for those who created a DeepL Pro account.`n`nThis allows you to use ahkmon without the DeepL desktop`nclient, while instead, interacting directly with DeepL's API.`n`nNote that signing up for a DeepL API account`nrequires a valid credit card.
+Gui, Add, Text,, This section is for those who created a DeepL API account.`n`nThis allows you to use ahkmon without the DeepL desktop`nclient, while instead, interacting directly with DeepL's API.`n`nNote that signing up for a DeepL API account`nrequires a valid credit card.
 Gui, Add, Link,, <a href="https://www.deepl.com/pro#developer">Sign up for a FREE DeepL Developer API account here</a>
 Gui, Add, CheckBox, vDeepLAPIEnable Checked%DeepLAPIEnable%, Enable DeepL API Requests?`n(You signed up for a`nfree DeepL Developer API account)
 Gui, Add, CheckBox, vDeepLApiPro Checked%DeepLApiPro%, Use DeepL API Pro APIs?`n(You paid for DeepL)
@@ -148,7 +179,7 @@ Gui, Add, Link,, Like what I'm doing? <a href="https://www.paypal.com/paypalme/s
 Gui, Add, Text,, Catch me on Discord: mebo#1337
 Gui, Add, Text,, Made by Serany <3
 
-;;=== Misc Start GUI ========================================================
+;=== Misc Start GUI =======================================================
 Gui, Show, Autosize
 Return
 
@@ -172,44 +203,12 @@ DeepLWordsLeft:
   GuiControl, Text, DeepLWords, %charRemaining% characters remaining
   return
 
-UploadLogs:
-  file := "textdb.out"
-  oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-
-  ;; Uses createFormData lib to generate multi-part stream
-  objParam := { file : ["textdb.csv"] }
-  CreateFormData(PostData, hdr_ContentType, objParam)
-
-  oWhr.Open("POST", "https://file.io", 1)
-  oWhr.SetRequestHeader("Content-Type", hdr_ContentType)
-  oWhr.SetRequestHeader("File", file)
-  oWhr.Send(PostData)
-  oWhr.WaitForResponse()
-
-  jsonResponse := JSON.Load(oWhr.ResponseText)
-  jsonResponse := jsonResponse.link
-
-  if (jsonResponse = "")
-  {
-    GuiControl, Text, LogLink, Failed to upload. Does textdb.csv exist?
-  }
-  else 
-  {
-    Clipboard := jsonResponse
-    GuiControl, Text, LogLink, Success. Link copied to clipboard!
-  }
-  return
-
 DownloadDb:
   UrlDownloadToFile, https://github.com/jmctune/ahkmon/raw/main/dqxtrl.db, dqxtrl.db
   if ErrorLevel
-  {
     GuiControl, Text, DatabaseStatusMessage, Database failed to update.
-  }
   else
-  {
     GuiControl, Text, DatabaseStatusMessage, Database updated!
-  }
   return
 
 ResetDeepLPosition:
@@ -219,7 +218,11 @@ ResetDeepLPosition:
 ;; What to do when the app is gracefully closed
 GuiEscape:
 GuiClose:
+{
+  Process, Close, dialogFinder.exe
+  Process, Close, questFinder.exe
   ExitApp
+}
 
 ;=== Save Start GUI settings to ini ==========================================
 Save:
@@ -227,152 +230,36 @@ Save:
   IniWrite, %Language%, settings.ini, general, Language
   IniWrite, %Log%, settings.ini, general, Log
   IniWrite, %ShowOnTaskbar%, settings.ini, overlay, ShowOnTaskbar
-  IniWrite, %OCR%, settings.ini, general, OCR
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
-  IniWrite, %OverlayWidth%, settings.ini, overlay, OverlayWidth
-  IniWrite, %OverlayHeight%, settings.ini, overlay, OverlayHeight
-  IniWrite, %OverlayColor%, settings.ini, overlay, OverlayColor
-  IniWrite, %ResizeOverlay%, settings.ini, overlay, ResizeOverlay
-  IniWrite, %AutoHideOverlay%, settings.ini, overlay, AutoHideOverlay
-  IniWrite, %FontColor%, settings.ini, overlay, FontColor
-  IniWrite, %FontSize%, settings.ini, overlay, FontSize
-  IniWrite, %FontType%, settings.ini, overlay, FontType
-  IniWrite, %OverlayTransparency%, settings.ini, overlay, OverlayTransparency
+  IniWrite, %dialogOverlayWidth%, settings.ini, dialogoverlay, dialogOverlayWidth
+  IniWrite, %dialogOverlayHeight%, settings.ini, dialogoverlay, dialogOverlayHeight
+  IniWrite, %dialogOverlayColor%, settings.ini, dialogoverlay, dialogOverlayColor
+  IniWrite, %dialogResizeOverlay%, settings.ini, dialogoverlay, dialogResizeOverlay
+  IniWrite, %dialogAutoHideOverlay%, settings.ini, dialogoverlay, dialogAutoHideOverlay
+  IniWrite, %dialogFontColor%, settings.ini, dialogoverlay, dialogFontColor
+  IniWrite, %dialogFontSize%, settings.ini, dialogoverlay, dialogFontSize
+  IniWrite, %dialogFontType%, settings.ini, dialogoverlay, dialogFontType
+  IniWrite, %dialogOverlayTransparency%, settings.ini, dialogoverlay, dialogOverlayTransparency
+  IniWrite, %questOverlayWidth%, settings.ini, questoverlay, questOverlayWidth
+  IniWrite, %questOverlayHeight%, settings.ini, questoverlay, questOverlayHeight
+  IniWrite, %questOverlayColor%, settings.ini, questoverlay, questOverlayColor
+  IniWrite, %questResizeOverlay%, settings.ini, questoverlay, questResizeOverlay
+  IniWrite, %questAutoHideOverlay%, settings.ini, questoverlay, questAutoHideOverlay
+  IniWrite, %questFontColor%, settings.ini, questoverlay, questFontColor
+  IniWrite, %questFontSize%, settings.ini, questoverlay, questFontSize
+  IniWrite, %questFontType%, settings.ini, questoverlay, questFontType
+  IniWrite, %questOverlayTransparency%, settings.ini, questoverlay, questOverlayTransparency
   IniWrite, %ShowFullDialog%, settings.ini, advanced, ShowFullDialog
   IniWrite, %HideDeepL%, settings.ini, advanced, HideDeepL
   IniWrite, %DeepLAPIEnable%, settings.ini, deepl, DeepLAPIEnable
   IniWrite, %DeepLApiPro%, settings.ini, deepl, DeepLApiPro
   IniWrite, %DeepLAPIKey%, settings.ini, deepl, DeepLAPIKey
 
-;=== Keys to press to trigger dialog to continue =============================
-;; Detect joystick
-if (JoystickEnabled = 1)
-{
-  Loop 16  ; Query each joystick number to find out which ones exist.
-    {
-      GetKeyState, JoyName, %A_Index%JoyName
-      if JoyName <>
-      {
-        JoystickNumber = %A_Index%
-        break
-      }
-    }
-    if JoystickNumber <= 0
-    {
-      MsgBox Could not find a valid joystick. Enabling ShowFullDialog instead.
-      ShowFullDialog := 1
-      IniWrite, %ShowFullDialog%, settings.ini, advanced, ShowFullDialog
-    }
-}
-
-KeyboardKeys := "Enter,Esc,Up,Down,Left,Right"
-
-;; Maps 1Joy1, 1Joy2, etc for the correct controller number that was found.
-loop 32
-  JoystickKeys .= JoystickNumber . "Joy" . A_Index . ","
-
-;=== Global vars we'll be using elsewhere ====================================
-Global Log
-Global FontType
-Global FontColor
-Global HideDeepL
-Global ClipboardWaitTime
+;=== Globals =================================================================
 Global DeepLAPIEnable
-Global DeepLAPIKey
-Global JoystickEnabled
-Global JoystickKeys
-Global KeyboardKeys
-Global Language
-Global newOverlayWidth
-Global newOverlayHeight
-Global AutoHideOverlay
-Global OverlayHeight
-Global alteredOverlayWidth
-Global DeepLApiPro
-Global ShowFullDialog
+Global Log
 
-;=== Open overlay ============================================================
-overlayShow = 1
-alteredOverlayWidth := OverlayWidth - 37
-Gui, 2:Default
-Gui, Color, %OverlayColor%  ; Sets GUI background to black
-Gui, Font, s%FontSize% c%FontColor%, %FontType%
-
-if (ShowFullDialog = 1)
-  Gui, Add, Edit, -E0x200 +0x0 vClip +ReadOnly -WantCtrlA -WantReturn -WantTab +BackgroundTrans -Border h%OverlayHeight% w%alteredOverlayWidth%
-else
-  Gui, Add, Text, +0x0 vClip h%OverlayHeight% w%alteredOverlayWidth%
-  
-Gui, Show, w%OverlayWidth% h%OverlayHeight% x%OverlayPosX% y%OverlayPosY%
-Winset, Transparent, %OverlayTransparency%, A
-Gui, +LastFound
-
-OnMessage(0x201,"WM_LBUTTONDOWN")  ; Allows dragging the window
-
-flags := "-caption +alwaysontop -Theme -DpiScale -Border "
-
-if (ResizeOverlay = 1)
-  customFlags := "+Resize -MaximizeBox "
-
-if (ShowOnTaskbar = 0) 
-  customFlags .= "+ToolWindow "
-else
-  customFlags .= "-ToolWindow "
-
-Gui, % flags . customFlags
-
-;=== Miscellaneous functions =================================================
-WM_LBUTTONDOWN(wParam,lParam,msg,hwnd) {
-  PostMessage, 0xA1, 2
-  Gui, 2:Default
-  WinGetPos, newOverlayX, newOverlayY, newOverlayWidth, newOverlayHeight, A
-  GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-31 "h" newOverlayHeight-38  ; Prefer redrawing on move rather than at the end as text gets distorted otherwise
-  WinGetPos, newOverlayX, newOverlayY, newOverlayWidth, newOverlayHeight, A
-  IniWrite, %newOverlayX%, settings.ini, overlay, OverlayPosX
-  IniWrite, %newOverlayY%, settings.ini, overlay, OverlayPosY
-}
-
-;; Controller/Keyboard function to progress text
-GetKeyPress(keyStr) {
-  keys := StrSplit(keyStr, ",")
-  loop
-    for each, key in keys
-      if GetKeyState(key)
-      {
-        KeyWait, %key%
-        return key
-      }
-}
-
-;=== Start DQ memread ========================================================
-dqMemRead()
-
-;=== Allows toggling the overlay on and off ==================================
-f12::
-{
-  if (overlayShow = 1) {
-    Gui, 2:Default
-    Gui, Hide
-    WinActivate, ahk_exe DQXGame.exe
-    overlayShow = 0
-  }
-  else {
-    Gui, 2:Default
-    Gui, Show
-    Sleep 100
-    WinGetPos,,,newOverlayWidth,newOverlayHeight, A
-    GuiControl, MoveDraw, Clip, % "w" newOverlayWidth-31 "h" newOverlayHeight-38
-    WinActivate, ahk_exe DQXGame.exe
-    overlayShow = 1
-  }
-  return
-}
-
-;=== Activates OCR capture ===================================================
-^Q::
-{
-  if (OCR = 1) {
-    screenOCR()
-  }
-  return
-}
+;=== Start DQ memreads =======================================================
+;; Pass arbitrary arg. Don't want user to run these directly.
+Run, questFinder.exe "nothing"  
+Run, dialogFinder.exe "nothing"

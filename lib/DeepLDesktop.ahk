@@ -1,4 +1,4 @@
-﻿DeepLDesktop(dqDialogText)
+﻿DeepLDesktop(dqText, isDialog)
 {
   Process, Exist, DeepL.exe
   if ErrorLevel
@@ -6,7 +6,6 @@
     ;; Check if user has DeepL minimized. If so, open it and send it to the back of the z-axis.
     ;; If it's in the system tray and not open, alert the user and exit the app. Re-activating
     ;; the window doesn't work with DeepL - you just get a permanent black box until you relaunch.
-    Gui, 2:Default
     WinActivate, ahk_exe DeepL.exe
     if !WinActive("ahk_exe DeepL.exe")
     {
@@ -34,15 +33,12 @@
     dbFileName := A_ScriptDir . "\dqxtrl.db"
     db := New SQLiteDB
 
-    ;; Show overlay if AutoHideOverlay enabled
-    if (AutoHideOverlay = 1)
-      Gui, Show, NA
-
     fullDialog := 
-    for index, sentence in StrSplit(dqDialogText, "`n`n", "`r")
+    for index, sentence in StrSplit(dqText, "`n`n", "`r")
     {
       ;; See if we have an entry available to grab from before sending the request to DeepL.
       result :=
+
       query := "SELECT " . Language . " FROM dialog WHERE jp = '" . sentence . "';"
 
       if db.OpenDB(dbFileName)
@@ -79,16 +75,8 @@
         Loop
         {
           ;; If DeepL takes too long to return a translation, time the attempt out.
-          if (A_Index > 15)
-          {
-            Gui, Font, cYellow Bold, %FontType%
-            GuiControl, Font, Clip
-            GuiControl, Text, Clip, DeepL did not return a translation in time.
-            Sleep 2000
-            Gui, Font, c%FontColor% Norm, %FontType%
-            GuiControl, Font, Clip
+          if (A_Index > 10)
             break
-          }
 
           ;; If the clipboard is in use, force whatever has it to let go
           if (DllCall("OpenClipboard", Ptr,A_ScriptHwnd))
@@ -103,47 +91,34 @@
           clipboardContents := Clipboard
         } Until clipboardContents
 
-        if (ShowFullDialog = 1)
+        if (isDialog = "true")
         {
-          fullDialog .= clipboardContents "`n`n"
-          GuiControl, Text, Clip, %fullDialog%
+          if (clipboardContents = "")
+            fullDialog := "DeepL did not return a translation."
+          else
+            fullDialog .= clipboardContents "`n`n"
         }
         else
         {
-          GuiControl, Text, Clip, %clipboardContents%
+          if (clipboardContents = "")
+            fullDialog := "DeepL did not return a translation."
+          else
+            fullDialog .= clipboardContents
         }
+
+        if (Log = 1)
+          if (clipboardContents != "")
+            FileAppend, JP: %sentence%`nEN: %clipboardContents%`n`n, txtout.txt, UTF-8
       }
 
       ;; If we found a result in the database, use that instead
+      if (isDialog = "true")
+        fullDialog .= result "`n`n"
       else
-      {
-        if (ShowFullDialog = 1)
-        {
-          fullDialog .= result "`n`n"
-          GuiControl, Text, Clip, %fullDialog%
-        }
-        else
-        {
-          GuiControl, Text, Clip, %result%
-        }
-      }
-
-      if (ShowFullDialog != 1)
-      {
-        ;; Determine whether to listen for joystick or keyboard keys to continue the dialog.
-        if (JoystickEnabled = 1)
-        {
-          WinActivate, ahk_class AutoHotkeyGUI
-          Input := GetKeyPress(JoystickKeys)
-        }
-        else
-        {
-          Input := GetKeyPress(KeyboardKeys)
-        }
-      }
+        fullDialog .= result
 
       if (Log = 1)
-        FileAppend, JP: %sentence%`nEN: %clipboardContents%`n`n, txtout.txt, UTF-8
+        FileAppend, JP: %sentence%`nEN: %fullDialog%`n`n, txtout.txt, UTF-8
     }
 
     ;; Close database connection
@@ -151,7 +126,7 @@
 
     ;; Re-focus DQX Window
     WinActivate, ahk_exe DQXGame.exe
-    return
+    return fullDialog
   }
 
   else

@@ -1,23 +1,14 @@
-﻿DeepLAPI(dqDialogText)
+﻿DeepLAPI(dqText, isDialog) 
 {
-  Gui, 2:Default
-
   ;; Open database connection.
   dbFileName := A_ScriptDir . "\dqxtrl.db"
   db := New SQLiteDB
 
-  ;; Show overlay if AutoHideOverlay enabled.
-  if (AutoHideOverlay = 1)
-    Gui, Show, NA
-
   ;; Iterate through each line returned.
   fullDialog :=
-  for index, sentence in StrSplit(dqDialogText, "`n`n", "`r") {
-
+  for index, sentence in StrSplit(dqText, "`n`n", "`r") {
     if InStr(sentence, "'")
-    {
       result :=
-    }
     else
     {
       ;; See if we have an entry available to grab from the database before sending the request to DeepL.
@@ -36,8 +27,7 @@
     ;; If no matching line was found in the database, query DeepL.
     if !result
     {
-      ;; If not found locally, make a call to DeepL API to get
-      ;; translated text.
+      ;; If not found locally, make a call to DeepL API to get translated text.
       StringUpper, languageUpper, Language
       Body := "auth_key="
             . DeepLAPIKey
@@ -94,46 +84,23 @@
 
       db.Exec("COMMIT TRANSACTION;")
 
-      ;; Remove escaped single quotes before sending to overlay.
+      ;; Remove escaped single quotes that were escaped for the SQLite transation.
       translatedText := StrReplace(translatedText, "''","'")
-      
-      if (ShowFullDialog = 1)
-      {
-        fullDialog .= translatedText "`n`n"
-        GuiControl, Text, Clip, %fullDialog%
-      }
-      else
-      {
-        GuiControl, Text, Clip, %translatedText%
-      }
-    }
 
+      ;; Don't add newlines if it isn't dialog text.
+      if (isDialog = "true")
+        fullDialog .= translatedText "`n`n"
+      else
+        fullDialog .= translatedText
+    }
+    ;; An entry in the database was found, so add to it here.
+    ;; Don't add newlines if it isn't dialog text.
     else
     {
-      if (ShowFullDialog = 1)
-      {
+      if (isDialog = "true")
         fullDialog .= result "`n`n"
-        GuiControl, Text, Clip, %fullDialog%
-      }
       else
-      {
-        GuiControl, Text, Clip, %result%
-      }
-    }
-    
-    if (ShowFullDialog != 1)
-    {
-      ;; Determine whether to listen for joystick or keyboard keys
-      ;; to continue the dialog.
-      if (JoystickEnabled = 1)
-      {
-        WinActivate, ahk_class AutoHotkeyGUI
-        Input := GetKeyPress(JoystickKeys)
-      }
-      else
-      {
-        Input := GetKeyPress(KeyboardKeys)
-      }
+        fullDialog .= result
     }
 
     if (Log = 1)
@@ -143,5 +110,5 @@
   ;; Close database connection.
   db.CloseDB()
 
-  return
+  return fullDialog
 }
