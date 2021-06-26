@@ -22,6 +22,7 @@ IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, ResizeOverlay, settings.ini, dialogoverlay, dialogResizeOverlay, 0
+IniRead, RoundedOverlay, settings.ini, dialogoverlay, dialogRoundedOverlay, 1
 IniRead, AutoHideOverlay, settings.ini, dialogoverlay, dialogAutoHideOverlay, 0
 IniRead, ShowOnTaskbar, settings.ini, dialogoverlay, dialogShowOnTaskbar, 0
 IniRead, OverlayWidth, settings.ini, dialogoverlay, dialogOverlayWidth, 930
@@ -75,7 +76,7 @@ KeyboardKeys := "Enter,Esc,Up,Down,Left,Right"
 loop 32
   JoystickKeys .= JoystickNumber . "Joy" . A_Index . ","
 
-;== Save overlay POS when moved =============================================
+;=== Save overlay POS when moved =============================================
 WM_LBUTTONDOWN(wParam,lParam,msg,hwnd) {
   PostMessage, 0xA1, 2
   WinGetPos, newOverlayX, newOverlayY, newOverlayWidth, newOverlayHeight, A
@@ -93,7 +94,14 @@ Gui, Color, %OverlayColor%  ; Sets GUI background to user's color
 Gui, Font, s%FontSize% c%FontColor%, %FontType%
 Gui, Add, Text, +0x0 vOverlay h%OverlayHeight% w%alteredOverlayWidth%
 Gui, Show, w%OverlayWidth% h%OverlayHeight% x%OverlayPosX% y%OverlayPosY%
-Winset, Transparent, %OverlayTransparency%, A
+WinSet, Transparent, %OverlayTransparency%, A
+
+if (RoundedOverlay = 1)
+{
+  WinGetPos, X, Y, W, H, A
+  WinSet, Region, R30-30 w%W% h%H% 0-0, A
+}
+
 Gui, +LastFound
 Gui, Hide
 

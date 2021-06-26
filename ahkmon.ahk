@@ -51,6 +51,7 @@ IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, dialogResizeOverlay, settings.ini, dialogoverlay, dialogResizeOverlay, 0
+IniRead, dialogRoundedOverlay, settings.ini, dialogoverlay, dialogRoundedOverlay, 1
 IniRead, dialogAutoHideOverlay, settings.ini, dialogoverlay, dialogAutoHideOverlay, 0
 IniRead, dialogShowOnTaskbar, settings.ini, dialogoverlay, dialogShowOnTaskbar, 0
 IniRead, dialogOverlayWidth, settings.ini, dialogoverlay, dialogOverlayWidth, 930
@@ -63,6 +64,7 @@ IniRead, dialogOverlayPosX, settings.ini, dialogoverlay, dialogOverlayPosX, 0
 IniRead, dialogOverlayPosY, settings.ini, dialogoverlay, dialogOverlayPosY, 0
 IniRead, dialogOverlayTransparency, settings.ini, dialogoverlay, dialogOverlayTransparency, 255
 IniRead, questResizeOverlay, settings.ini, questoverlay, questResizeOverlay, 0
+IniRead, questRoundedOverlay, settings.ini, questoverlay, questRoundedOverlay, 1
 IniRead, questAutoHideOverlay, settings.ini, questoverlay, questAutoHideOverlay, 0
 IniRead, questShowOnTaskbar, settings.ini, questoverlay, questShowOnTaskbar, 0
 IniRead, questOverlayWidth, settings.ini, questoverlay, questOverlayWidth, 930
@@ -97,6 +99,7 @@ Gui, Add, Button, gSave, Run ahkmon
 Gui, Tab, Dialog Overlay
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Dialog Overlay Documentation</a>
 Gui, Add, CheckBox, vdialogResizeOverlay Checked%dialogResizeOverlay%, Allow resize of Dialog overlay?
+Gui, Add, CheckBox, vdialogRoundedOverlay Checked%dialogRoundedOverlay%, Rounded Dialog overlay?
 Gui, Add, CheckBox, vdialogAutoHideOverlay Checked%dialogAutoHideOverlay%, Automatically hide Dialog overlay?
 Gui, Add, CheckBox, vdialogShowOnTaskbar Checked%dialogShowOnTaskbar%, Show Dialog overlay on taskbar when active?
 Gui, Add, Text,, Dialog overlay transparency (lower = more transparent):
@@ -120,7 +123,8 @@ Gui, Add, ComboBox, vdialogFontType, %dialogFontType%||Calibri|Consolas|Courier 
 ;; Quest Overlay settings tab
 Gui, Tab, Quest Overlay
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Quest Overlay Documentation</a>
-Gui, Add, CheckBox, vquestResizeOverlay Checked%questquestResizeOverlay%, Allow resize of Quest overlay?
+Gui, Add, CheckBox, vquestResizeOverlay Checked%questResizeOverlay%, Allow resize of Quest overlay?
+Gui, Add, CheckBox, vquestRoundedOverlay Checked%questRoundedOverlay%, Rounded Quest overlay?
 Gui, Add, CheckBox, vquestAutoHideOverlay Checked%questAutoHideOverlay%, Automatically hide Quest overlay?
 Gui, Add, CheckBox, vquestShowOnTaskbar Checked%questShowOnTaskbar%, Show Quest overlay on taskbar when active?
 Gui, Add, Text,, Quest overlay transparency (lower = more transparent):
@@ -232,6 +236,7 @@ Save:
   IniWrite, %ShowOnTaskbar%, settings.ini, overlay, ShowOnTaskbar
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
   IniWrite, %dialogOverlayWidth%, settings.ini, dialogoverlay, dialogOverlayWidth
+  IniWrite, %dialogRoundedOverlay%, settings.ini, dialogoverlay, dialogRoundedOverlay
   IniWrite, %dialogOverlayHeight%, settings.ini, dialogoverlay, dialogOverlayHeight
   IniWrite, %dialogOverlayColor%, settings.ini, dialogoverlay, dialogOverlayColor
   IniWrite, %dialogResizeOverlay%, settings.ini, dialogoverlay, dialogResizeOverlay
@@ -241,6 +246,7 @@ Save:
   IniWrite, %dialogFontType%, settings.ini, dialogoverlay, dialogFontType
   IniWrite, %dialogOverlayTransparency%, settings.ini, dialogoverlay, dialogOverlayTransparency
   IniWrite, %questOverlayWidth%, settings.ini, questoverlay, questOverlayWidth
+  IniWrite, %questRoundedOverlay%, settings.ini, questoverlay, questRoundedOverlay
   IniWrite, %questOverlayHeight%, settings.ini, questoverlay, questOverlayHeight
   IniWrite, %questOverlayColor%, settings.ini, questoverlay, questOverlayColor
   IniWrite, %questResizeOverlay%, settings.ini, questoverlay, questResizeOverlay
@@ -261,5 +267,6 @@ Global Log
 
 ;=== Start DQ memreads =======================================================
 ;; Pass arbitrary arg. Don't want user to run these directly.
-Run, questFinder.exe "nothing"  
+Run, questFinder.exe "nothing"
+Sleep 500  ;; Give questfinder a chance to start up its overlay stuff before adding dialogFinder
 Run, dialogFinder.exe "nothing"

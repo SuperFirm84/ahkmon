@@ -21,6 +21,7 @@ if A_Args.Length() < 1
 IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, ResizeOverlay, settings.ini, questoverlay, questResizeOverlay, 0
+IniRead, RoundedOverlay, settings.ini, questoverlay, questRoundedOverlay, 1
 IniRead, AutoHideOverlay, settings.ini, questoverlay, questAutoHideOverlay, 0
 IniRead, ShowOnTaskbar, settings.ini, questoverlay, questShowOnTaskbar, 0
 IniRead, OverlayWidth, settings.ini, questoverlay, questOverlayWidth, 930
@@ -79,6 +80,13 @@ Gui, Font, s%FontSize% c%FontColor%, %FontType%
 Gui, Add, Link, +0x0 vOverlay h%OverlayHeight% w%alteredOverlayWidth%
 Gui, Show, w%OverlayWidth% h%OverlayHeight% x%OverlayPosX% y%OverlayPosY%
 Winset, Transparent, %OverlayTransparency%, A
+
+if (RoundedOverlay = 1)
+{
+  WinGetPos, X, Y, W, H, A
+  WinSet, Region, R30-30 w%W% h%H% 0-0, A
+}
+
 Gui, +LastFound
 Gui, Hide
 
