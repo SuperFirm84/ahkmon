@@ -46,6 +46,8 @@ Global DeepLAPIKey
 Global Language
 Global DeepLApiPro
 Global HideDeepL
+Global KeyboardKeys
+Global JoystickKeys
 
 ;=== Controller Configuration ==============================================
 if (JoystickEnabled = 1)
@@ -175,7 +177,10 @@ loop
               Input := GetKeyPress(JoystickKeys)
             }
             else
+            {
+              WinActivate, ahk_exe DQXGame.exe
               Input := GetKeyPress(KeyboardKeys)
+            }
           }
         }
         else
