@@ -184,7 +184,10 @@ loop
           }
         }
         else
+        {
+          WinActivate, ahk_exe DQXGame.exe
           GuiControl, Text, Overlay, %dialogText%
+        }
 
         ;; Set LastAddress to ActualAddress so we aren't reading the same string over and over.
         dialogLastAddress := dialogActualAddress
