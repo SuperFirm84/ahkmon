@@ -198,6 +198,7 @@ Gui, Add, Text, w+300 vDatabaseStatusMessage,
 ;; Translate API tab
 Gui, Tab, Translate APIs
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Translate-APIs-tab">Translate APIs Documentation</a>
+Gui, Add, Text, y+2, Configure one or the other - not both!
 Gui, Add, Text,, DeepL Configuration:
 Gui, Add, CheckBox, vUseDeepLTranslate Checked%UseDeepLTranslate%, Use DeepL Translate
 Gui, Add, CheckBox, vDeepLApiPro Checked%DeepLApiPro%, Use DeepL Pro APIs
@@ -296,7 +297,6 @@ Save:
   Gui, Submit, Hide
   IniWrite, %Language%, settings.ini, general, Language
   IniWrite, %Log%, settings.ini, general, Log
-  IniWrite, %ShowOnTaskbar%, settings.ini, overlay, ShowOnTaskbar
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
   IniWrite, %translateWalkthrough%, settings.ini, general, enableWalkthrough
   IniWrite, %translateQuests%, settings.ini, general, enableQuests
@@ -310,6 +310,7 @@ Save:
   IniWrite, %dialogFontSize%, settings.ini, dialogoverlay, dialogFontSize
   IniWrite, %dialogFontType%, settings.ini, dialogoverlay, dialogFontType
   IniWrite, %dialogOverlayTransparency%, settings.ini, dialogoverlay, dialogOverlayTransparency
+  IniWrite, %dialogShowOnTaskbar%, settings.ini, dialogoverlay, dialogShowOnTaskbar
   IniWrite, %questOverlayWidth%, settings.ini, questoverlay, questOverlayWidth
   IniWrite, %questRoundedOverlay%, settings.ini, questoverlay, questRoundedOverlay
   IniWrite, %questOverlayHeight%, settings.ini, questoverlay, questOverlayHeight
@@ -320,6 +321,7 @@ Save:
   IniWrite, %questFontSize%, settings.ini, questoverlay, questFontSize
   IniWrite, %questFontType%, settings.ini, questoverlay, questFontType
   IniWrite, %questOverlayTransparency%, settings.ini, questoverlay, questOverlayTransparency
+  IniWrite, %questShowOnTaskbar%, settings.ini, questoverlay, questShowOnTaskbar
   IniWrite, %walkthroughOverlayWidth%, settings.ini, walkthroughoverlay, walkthroughOverlayWidth
   IniWrite, %walkthroughRoundedOverlay%, settings.ini, walkthroughoverlay, walkthroughRoundedOverlay
   IniWrite, %walkthroughOverlayHeight%, settings.ini, walkthroughoverlay, walkthroughOverlayHeight
