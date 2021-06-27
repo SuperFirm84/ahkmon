@@ -1,7 +1,6 @@
 #NoEnv
 #NoTrayIcon
 #SingleInstance force
-#Include <DeepLDesktop>
 #Include <DeepLAPI>
 #Include <GetKeyPress>
 #Include <classMemory>
@@ -33,18 +32,14 @@ IniRead, FontType, settings.ini, questoverlay, questFontType, Arial
 IniRead, OverlayPosX, settings.ini, questoverlay, questOverlayPosX, 0
 IniRead, OverlayPosY, settings.ini, questoverlay, questOverlayPosY, 0
 IniRead, OverlayTransparency, settings.ini, questoverlay, questOverlayTransparency, 255
-IniRead, HideDeepL, settings.ini, advanced, HideDeepL, 0
-IniRead, DeepLAPIEnable, settings.ini, deepl, DeepLAPIEnable, 0
 IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
 
 ;; === Global vars we'll be using elsewhere ==================================
 Global Log
-Global DeepLAPIEnable
 Global DeepLAPIKey
 Global Language
 Global DeepLApiPro
-Global HideDeepL
 
 ;; === General Quest Text ====================================================
 questAddress := 0x01E5A440
@@ -127,28 +122,14 @@ loop
 
           GuiControl, Text, Overlay, ...
           Gui, Show
-          if (DeepLAPIEnable = 1)
-          {
-            if (questSubQuestName != "")
-              questSubQuestName := DeepLAPI(questSubQuestName, "false")
+          if (questSubQuestName != "")
+            questSubQuestName := DeepLAPI(questSubQuestName, "false")
 
-            questName := DeepLAPI(newQuestName, "false")
-            questDescription := DeepLAPI(questDescription, "false")
-            questDescription := StrReplace(questDescription, "{color=yellow}", "")
-            questDescription := StrReplace(questDescription, "{reset}", "")
-            questNumber := StrReplace(questNumber, "", "")
-          }
-          else
-          {
-            if (questSubQuestName != "")
-              questSubQuestName := DeepLDesktop(questSubQuestName, "false")
-
-            questName := DeepLDesktop(newQuestName, "false")
-            questDescription := DeepLDesktop(questDescription, "false")
-            questDescription := StrReplace(questDescription, "{color=yellow}", "")
-            questDescription := StrReplace(questDescription, "{reset}", "")
-            questNumber := StrReplace(questNumber, "", "")
-          }
+          questName := DeepLAPI(newQuestName, "false")
+          questDescription := DeepLAPI(questDescription, "false")
+          questDescription := StrReplace(questDescription, "{color=yellow}", "")
+          questDescription := StrReplace(questDescription, "{reset}", "")
+          questNumber := StrReplace(questNumber, "", "")
 
           if (questSubQuestName != "")
             GuiControl, Text, Overlay, SubQuest: %questSubQuestName%`nQuest: %questName%`n`n%questDescription%
@@ -177,10 +158,10 @@ loop
       lastQuestName := questName
       Sleep 750
 
-      ;; Exit loop if DQX closed
+      ;; Exit app if DQX closed
       Process, Exist, DQXGame.exe
       if !ErrorLevel
-        break
+        ExitApp
 
       ;; Exit app if ahkmon is closed
       Process, Exist, ahkmon.exe

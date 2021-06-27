@@ -1,7 +1,6 @@
 ﻿#NoEnv
 #NoTrayIcon
 #SingleInstance force
-#Include <DeepLDesktop>
 #Include <DeepLAPI>
 #Include <GetKeyPress>
 #Include <classMemory>
@@ -34,19 +33,15 @@ IniRead, FontType, settings.ini, dialogoverlay, dialogFontType, Arial
 IniRead, OverlayPosX, settings.ini, dialogoverlay, dialogOverlayPosX, 0
 IniRead, OverlayPosY, settings.ini, dialogoverlay, dialogOverlayPosY, 0
 IniRead, OverlayTransparency, settings.ini, dialogoverlay, dialogOverlayTransparency, 255
-IniRead, HideDeepL, settings.ini, advanced, HideDeepL, 0
 IniRead, ShowFullDialog, settings.ini, advanced, ShowFullDialog, 0
-IniRead, DeepLAPIEnable, settings.ini, deepl, DeepLAPIEnable, 0
 IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
 
 ;; === Global vars we'll be using elsewhere ==================================
 Global Log
-Global DeepLAPIEnable
 Global DeepLAPIKey
 Global Language
 Global DeepLApiPro
-Global HideDeepL
 Global KeyboardKeys
 Global JoystickKeys
 
@@ -153,18 +148,14 @@ loop
       {
         GuiControl, Text, Overlay,
         Gui, Show
+
         ;; Read string at address and sanitize before sending for translation
         dialogText := dqx.readString(dialogActualAddress, sizeBytes := 0, encoding := "utf-8")
         dialogText := RegExReplace(dialogText, "\n", "")
         dialogText := RegExReplace(dialogText, "<br>", "`n`n")
         dialogText := RegExReplace(dialogText, "(<.+?>)", "")
         dialogText := StrReplace(dialogText, "「", "")
-
-        ;; Determine which DeepL method to use.
-        if (DeepLAPIEnable = 1)
-          dialogText := DeepLAPI(dialogText, "true")
-        else
-          dialogText := DeepLDesktop(dialogText, "true")
+        dialogText := DeepLAPI(dialogText, "true")
 
         ;; Iterate through each line in the dialog if line by line disabled.
         ;; Otherwise, spit all the text out at once.
@@ -201,10 +192,10 @@ loop
         dialogLastAddress := dialogActualAddress
       }
 
-      ;; Exit loop if DQX closed.
+      ;; Exit app if DQX closed
       Process, Exist, DQXGame.exe
       if !ErrorLevel
-        break
+        ExitApp
 
       ;; Exit app if ahkmon is closed
       Process, Exist, ahkmon.exe

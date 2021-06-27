@@ -1,7 +1,6 @@
 #Persistent
 #NoEnv
 #SingleInstance force
-#Include <DeepLDesktop>
 #Include <DeepLAPI>
 #Include <JSON>
 #Include <SQLiteDB>
@@ -10,6 +9,7 @@ SendMode Input
 ;=== Close any existing finder windows ======================================
 Process, Close, questFinder.exe
 Process, Close, dialogFinder.exe
+Process, Close, walkthroughFinder.exe
 
 ;=== Auto update ============================================================
 ;; Get latest version number from Github
@@ -29,9 +29,7 @@ FileRead, currentVersion, version
 if (latestVersion != currentVersion)
 {
   if (latestVersion = "" || currentVersion = "")
-  {
     MsgBox Unable to determine latest version. Continuing without updating.
-  }
   else
   {
     Run ahkmon_updater.exe
@@ -50,6 +48,8 @@ if FileExist(tmpLoc)
 IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
+IniRead, enableWalkthrough, settings.ini, general, enableWalkthrough, 0
+IniRead, enableQuests, settings.ini, general, enableQuests, 1
 IniRead, dialogResizeOverlay, settings.ini, dialogoverlay, dialogResizeOverlay, 0
 IniRead, dialogRoundedOverlay, settings.ini, dialogoverlay, dialogRoundedOverlay, 1
 IniRead, dialogAutoHideOverlay, settings.ini, dialogoverlay, dialogAutoHideOverlay, 0
@@ -76,21 +76,34 @@ IniRead, questFontType, settings.ini, questoverlay, questFontType, Arial
 IniRead, questOverlayPosX, settings.ini, questoverlay, questOverlayPosX, 0
 IniRead, questOverlayPosY, settings.ini, questoverlay, questOverlayPosY, 0
 IniRead, questOverlayTransparency, settings.ini, questoverlay, questOverlayTransparency, 255
+IniRead, walkthroughResizeOverlay, settings.ini, walkthroughoverlay, walkthroughResizeOverlay, 0
+IniRead, walkthroughRoundedOverlay, settings.ini, walkthroughoverlay, walkthroughRoundedOverlay, 1
+IniRead, walkthroughAutoHideOverlay, settings.ini, walkthroughoverlay, walkthroughAutoHideOverlay, 0
+IniRead, walkthroughShowOnTaskbar, settings.ini, walkthroughoverlay, walkthroughShowOnTaskbar, 0
+IniRead, walkthroughOverlayWidth, settings.ini, walkthroughoverlay, walkthroughOverlayWidth, 930
+IniRead, walkthroughOverlayHeight, settings.ini, walkthroughoverlay, walkthroughOverlayHeight, 150
+IniRead, walkthroughOverlayColor, settings.ini, walkthroughoverlay, walkthroughOverlayColor, 000000
+IniRead, walkthroughFontColor, settings.ini, walkthroughoverlay, walkthroughFontColor, White
+IniRead, walkthroughFontSize, settings.ini, walkthroughoverlay, walkthroughFontSize, 16
+IniRead, walkthroughFontType, settings.ini, walkthroughoverlay, walkthroughFontType, Arial
+IniRead, walkthroughOverlayPosX, settings.ini, walkthroughoverlay, walkthroughOverlayPosX, 0
+IniRead, walkthroughOverlayPosY, settings.ini, walkthroughoverlay, walkthroughOverlayPosY, 0
+IniRead, walkthroughOverlayTransparency, settings.ini, walkthroughoverlay, walkthroughOverlayTransparency, 255
 IniRead, ShowFullDialog, settings.ini, advanced, ShowFullDialog, 0
-IniRead, HideDeepL, settings.ini, advanced, HideDeepL, 0
-IniRead, DeepLAPIEnable, settings.ini, deepl, DeepLAPIEnable, 0
 IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
 
 ;=== Create Start GUI =====================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
-Gui, Add, Tab3,, General|Dialog Overlay|Quest Overlay|Advanced|DeepL API|Help|About
+Gui, Add, Tab3,, General|Dialog Overlay|Quest Overlay|Walkthrough Overlay|Advanced|DeepL API|Help|About
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/General-tab">General Settings Documentation</a>
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
 Gui, Add, Link,, Language you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
 Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
+Gui, Add, Checkbox, vTranslateQuests Checked%enableQuests%, Enable Quest translations?
+Gui, Add, Checkbox, vTranslateWalkthrough Checked%enableWalkthrough%, Enable Walkthrough translations?
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
 Gui, Add, CheckBox, vJoystickEnabled Checked%JoystickEnabled%, Do you play with a controller?
 Gui, Add, Button, gSave, Run ahkmon
@@ -145,13 +158,36 @@ Gui, Add, UpDown, vquestFontSize Range8-30, %questFontSize%
 Gui, Add, Text, vquestFontInfo, Select a font or enter a custom font available`non your system to use with the Quest overlay:
 Gui, Add, ComboBox, vquestFontType, %questFontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
 
+;; Walkthrough Overlay settings tab
+Gui, Tab, Walkthrough Overlay
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Walkthrough overlay Documentation</a>
+Gui, Add, CheckBox, vwalkthroughResizeOverlay Checked%walkthroughResizeOverlay%, Allow resize of Walkthrough overlay?
+Gui, Add, CheckBox, vwalkthroughRoundedOverlay Checked%walkthroughRoundedOverlay%, Rounded Walkthrough overlay?
+Gui, Add, CheckBox, vwalkthroughAutoHideOverlay Checked%walkthroughAutoHideOverlay%, Automatically hide Walkthrough overlay?
+Gui, Add, CheckBox, vwalkthroughShowOnTaskbar Checked%walkthroughShowOnTaskbar%, Show Walkthrough overlay on taskbar when active?
+Gui, Add, Text,, Walkthrough overlay transparency (lower = more transparent):
+Gui, Add, Slider, vwalkthroughOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %walkthroughOverlayTransparency%
+Gui, Add, Text, vwalkthroughOverlayColorInfo, Walkthrough overlay background color (use hex color codes):
+Gui, Add, ComboBox, vwalkthroughOverlayColor, %walkthroughOverlayColor%||
+Gui, Add, Text, vwalkthroughOverlayWidthInfo, Initial Walkthrough overlay width:
+Gui, Add, Edit
+Gui, Add, UpDown, vwalkthroughOverlayWidth Range100-2000, %walkthroughOverlayWidth%
+Gui, Add, Text, vwalkthroughOverlayHeightInfo, Initial Walkthrough overlay height:
+Gui, Add, Edit
+Gui, Add, UpDown, vwalkthroughOverlayHeight Range100-2000, %walkthroughOverlayHeight%
+Gui, Add, Text, vwalkthroughFontColorInfo, Walkthrough overlay font color:
+Gui, Add, ComboBox, vwalkthroughFontColor, %walkthroughFontColor%||Yellow|Red|Green|Blue|Black|Gray|Maroon|Purple|Fuchsia|Lime|Olive|Navy|Teal|Aqua
+Gui, Add, Text,, Walkthrough overlay font size:
+Gui, Add, Edit
+Gui, Add, UpDown, vwalkthroughFontSize Range8-30, %walkthroughFontSize%
+Gui, Add, Text, vwalkthroughFontInfo, Select a font or enter a custom font available`non your system to use with the Walkthrough overlay:
+Gui, Add, ComboBox, vwalkthroughFontType, %walkthroughFontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
+
 ;; Advanced tab
 Gui, Tab, Advanced
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Advanced-tab">Advanced Settings Documentation</a>
 Gui, Add, Text,, This tab is for users that struggle with the default settings.
 Gui, Add, CheckBox, vShowFullDialog Checked%ShowFullDialog%, Show all text at once instead of line by line?
-Gui, Add, CheckBox, vHideDeepL Checked%HideDeepL%, Hide DeepL?
-Gui, Add, Button, gResetDeepLPosition, Reset DeepL Position
 Gui, Add, Text, w+300 vLogLink, 
 Gui, Add, Text,, Download latest database`n(this will overwrite your current database!)
 Gui, Add, Button, gDownloadDb, Download Database
@@ -160,7 +196,6 @@ Gui, Add, Text, w+300 vDatabaseStatusMessage,
 ;; DeepL API tab
 Gui, Tab, DeepL API
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/DeepL-API-tab">DeepL API Documentation</a>
-Gui, Add, Text,, This section is for those who created a DeepL API account.`n`nThis allows you to use ahkmon without the DeepL desktop`nclient, while instead, interacting directly with DeepL's API.`n`nNote that signing up for a DeepL API account`nrequires a valid credit card.
 Gui, Add, Link,, <a href="https://www.deepl.com/pro#developer">Sign up for a FREE DeepL Developer API account here</a>
 Gui, Add, CheckBox, vDeepLAPIEnable Checked%DeepLAPIEnable%, Enable DeepL API Requests?`n(You signed up for a`nfree DeepL Developer API account)
 Gui, Add, CheckBox, vDeepLApiPro Checked%DeepLApiPro%, Use DeepL API Pro APIs?`n(You paid for DeepL)
@@ -215,16 +250,13 @@ DownloadDb:
     GuiControl, Text, DatabaseStatusMessage, Database updated!
   return
 
-ResetDeepLPosition:
-  WinMove, DeepL,, 0, 0
-  return
-
 ;; What to do when the app is gracefully closed
 GuiEscape:
 GuiClose:
 {
   Process, Close, dialogFinder.exe
   Process, Close, questFinder.exe
+  Process, Close, walkthroughFinder.exe
   ExitApp
 }
 
@@ -235,6 +267,8 @@ Save:
   IniWrite, %Log%, settings.ini, general, Log
   IniWrite, %ShowOnTaskbar%, settings.ini, overlay, ShowOnTaskbar
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
+  IniWrite, %translateWalkthrough%, settings.ini, general, enableWalkthrough
+  IniWrite, %translateQuests%, settings.ini, general, enableQuests
   IniWrite, %dialogOverlayWidth%, settings.ini, dialogoverlay, dialogOverlayWidth
   IniWrite, %dialogRoundedOverlay%, settings.ini, dialogoverlay, dialogRoundedOverlay
   IniWrite, %dialogOverlayHeight%, settings.ini, dialogoverlay, dialogOverlayHeight
@@ -255,18 +289,60 @@ Save:
   IniWrite, %questFontSize%, settings.ini, questoverlay, questFontSize
   IniWrite, %questFontType%, settings.ini, questoverlay, questFontType
   IniWrite, %questOverlayTransparency%, settings.ini, questoverlay, questOverlayTransparency
+  IniWrite, %walkthroughOverlayWidth%, settings.ini, walkthroughoverlay, walkthroughOverlayWidth
+  IniWrite, %walkthroughRoundedOverlay%, settings.ini, walkthroughoverlay, walkthroughRoundedOverlay
+  IniWrite, %walkthroughOverlayHeight%, settings.ini, walkthroughoverlay, walkthroughOverlayHeight
+  IniWrite, %walkthroughOverlayColor%, settings.ini, walkthroughoverlay, walkthroughOverlayColor
+  IniWrite, %walkthroughResizeOverlay%, settings.ini, walkthroughoverlay, walkthroughResizeOverlay
+  IniWrite, %walkthroughAutoHideOverlay%, settings.ini, walkthroughoverlay, walkthroughAutoHideOverlay
+  IniWrite, %walkthroughFontColor%, settings.ini, walkthroughoverlay, walkthroughFontColor
+  IniWrite, %walkthroughFontSize%, settings.ini, walkthroughoverlay, walkthroughFontSize
+  IniWrite, %walkthroughFontType%, settings.ini, walkthroughoverlay, walkthroughFontType
+  IniWrite, %walkthroughOverlayTransparency%, settings.ini, walkthroughoverlay, walkthroughOverlayTransparency
   IniWrite, %ShowFullDialog%, settings.ini, advanced, ShowFullDialog
-  IniWrite, %HideDeepL%, settings.ini, advanced, HideDeepL
-  IniWrite, %DeepLAPIEnable%, settings.ini, deepl, DeepLAPIEnable
   IniWrite, %DeepLApiPro%, settings.ini, deepl, DeepLApiPro
   IniWrite, %DeepLAPIKey%, settings.ini, deepl, DeepLAPIKey
 
 ;=== Globals =================================================================
-Global DeepLAPIEnable
 Global Log
+
+if DeepLApiPro = 1
+  url := "https://api.deepl.com/v2"
+else
+  url := "https://api-free.deepl.com/v2"
+
+oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+url := url . "/usage?auth_key=" . DeepLAPIKey
+oWhr.Open("POST", url, 0)
+oWhr.SetRequestHeader("User-Agent", "DQXTranslator")
+oWhr.Send()
+oWhr.WaitForResponse()
+jsonResponse := JSON.Load(oWhr.ResponseText)
+charRemaining := (jsonResponse.character_limit - jsonResponse.character_count)
+
+if (charRemaining = "")
+{
+  MsgBox DeepL API key is invalid. Ensure you entered the key correctly and try again.
+  ExitApp
+}
 
 ;=== Start DQ memreads =======================================================
 ;; Pass arbitrary arg. Don't want user to run these directly.
-Run, questFinder.exe "nothing"
-Sleep 500  ;; Give questfinder a chance to start up its overlay stuff before adding dialogFinder
 Run, dialogFinder.exe "nothing"
+Sleep 500
+if (translateQuests = 1)
+  Run, questFinder.exe "nothing"
+Sleep 500
+if (translateWalkthrough = 1)
+  Run walkthroughFinder.exe "nothing"
+
+;; If ahkmon is closed, kill the child processes it spawned as well.
+OnExit("ExitSub")
+
+ExitSub()
+{
+  Process, Close, questFinder.exe
+  Process, Close, dialogFinder.exe
+  Process, Close, walkthroughFinder.exe
+  ExitApp
+}
