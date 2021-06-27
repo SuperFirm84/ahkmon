@@ -1,7 +1,7 @@
 #NoEnv
 #NoTrayIcon
 #SingleInstance force
-#Include <DeepLAPI>
+#Include <translate>
 #Include <GetKeyPress>
 #Include <classMemory>
 #Include <SQLiteDB>
@@ -20,7 +20,7 @@ if A_Args.Length() < 1
 IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, ResizeOverlay, settings.ini, questoverlay, questResizeOverlay, 0
-IniRead, RoundedOverlay, settings.ini, questoverlay, questRoundedOverlay, 1
+IniRead, RoundedOverlay, settings.ini, questoverlay, questRoundedOverlay, 0
 IniRead, AutoHideOverlay, settings.ini, questoverlay, questAutoHideOverlay, 0
 IniRead, ShowOnTaskbar, settings.ini, questoverlay, questShowOnTaskbar, 0
 IniRead, OverlayWidth, settings.ini, questoverlay, questOverlayWidth, 930
@@ -32,14 +32,20 @@ IniRead, FontType, settings.ini, questoverlay, questFontType, Arial
 IniRead, OverlayPosX, settings.ini, questoverlay, questOverlayPosX, 0
 IniRead, OverlayPosY, settings.ini, questoverlay, questOverlayPosY, 0
 IniRead, OverlayTransparency, settings.ini, questoverlay, questOverlayTransparency, 255
+IniRead, UseDeepLTranslate, settings.ini, deepl, UseDeepLTranslate, 0
 IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
+IniRead, UseGoogleTranslate, settings.ini, google, UseGoogleTranslate, 0
+IniRead, GoogleTranslateAPIKey, settings.ini, google, GoogleTranslateAPIKey, EMPTY
 
 ;; === Global vars we'll be using elsewhere ==================================
 Global Log
-Global DeepLAPIKey
 Global Language
+Global UseDeepLTranslate
+Global DeepLAPIKey
 Global DeepLApiPro
+Global UseGoogleTranslate
+Global GoogleTranslateAPIKey
 
 ;; === General Quest Text ====================================================
 questAddress := 0x01E5A440
@@ -123,10 +129,10 @@ loop
           GuiControl, Text, Overlay, ...
           Gui, Show
           if (questSubQuestName != "")
-            questSubQuestName := DeepLAPI(questSubQuestName, "false")
+            questSubQuestName := translate(questSubQuestName, "false")
 
-          questName := DeepLAPI(newQuestName, "false")
-          questDescription := DeepLAPI(questDescription, "false")
+          questName := translate(newQuestName, "false")
+          questDescription := translate(questDescription, "false")
           questDescription := StrReplace(questDescription, "{color=yellow}", "")
           questDescription := StrReplace(questDescription, "{reset}", "")
           questNumber := StrReplace(questNumber, "", "")

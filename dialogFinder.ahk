@@ -1,7 +1,7 @@
 ﻿#NoEnv
 #NoTrayIcon
 #SingleInstance force
-#Include <DeepLAPI>
+#Include <translate>
 #Include <GetKeyPress>
 #Include <classMemory>
 #Include <SQLiteDB>
@@ -21,7 +21,7 @@ IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, ResizeOverlay, settings.ini, dialogoverlay, dialogResizeOverlay, 0
-IniRead, RoundedOverlay, settings.ini, dialogoverlay, dialogRoundedOverlay, 1
+IniRead, RoundedOverlay, settings.ini, dialogoverlay, dialogRoundedOverlay, 0
 IniRead, AutoHideOverlay, settings.ini, dialogoverlay, dialogAutoHideOverlay, 0
 IniRead, ShowOnTaskbar, settings.ini, dialogoverlay, dialogShowOnTaskbar, 0
 IniRead, OverlayWidth, settings.ini, dialogoverlay, dialogOverlayWidth, 930
@@ -34,14 +34,20 @@ IniRead, OverlayPosX, settings.ini, dialogoverlay, dialogOverlayPosX, 0
 IniRead, OverlayPosY, settings.ini, dialogoverlay, dialogOverlayPosY, 0
 IniRead, OverlayTransparency, settings.ini, dialogoverlay, dialogOverlayTransparency, 255
 IniRead, ShowFullDialog, settings.ini, advanced, ShowFullDialog, 0
+IniRead, UseDeepLTranslate, settings.ini, deepl, UseDeepLTranslate, 0
 IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
+IniRead, UseGoogleTranslate, settings.ini, google, UseGoogleTranslate, 0
+IniRead, GoogleTranslateAPIKey, settings.ini, google, GoogleTranslateAPIKey, EMPTY
 
 ;; === Global vars we'll be using elsewhere ==================================
 Global Log
-Global DeepLAPIKey
 Global Language
+Global UseDeepLTranslate
+Global DeepLAPIKey
 Global DeepLApiPro
+Global UseGoogleTranslate
+Global GoogleTranslateAPIKey
 Global KeyboardKeys
 Global JoystickKeys
 
@@ -155,7 +161,7 @@ loop
         dialogText := RegExReplace(dialogText, "<br>", "`n`n")
         dialogText := RegExReplace(dialogText, "(<.+?>)", "")
         dialogText := StrReplace(dialogText, "「", "")
-        dialogText := DeepLAPI(dialogText, "true")
+        dialogText := translate(dialogText, "true")
 
         ;; Iterate through each line in the dialog if line by line disabled.
         ;; Otherwise, spit all the text out at once.

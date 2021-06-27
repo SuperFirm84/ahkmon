@@ -1,7 +1,7 @@
 #Persistent
 #NoEnv
 #SingleInstance force
-#Include <DeepLAPI>
+#Include <translate>
 #Include <JSON>
 #Include <SQLiteDB>
 SendMode Input
@@ -51,7 +51,7 @@ IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, enableWalkthrough, settings.ini, general, enableWalkthrough, 0
 IniRead, enableQuests, settings.ini, general, enableQuests, 1
 IniRead, dialogResizeOverlay, settings.ini, dialogoverlay, dialogResizeOverlay, 0
-IniRead, dialogRoundedOverlay, settings.ini, dialogoverlay, dialogRoundedOverlay, 1
+IniRead, dialogRoundedOverlay, settings.ini, dialogoverlay, dialogRoundedOverlay, 0
 IniRead, dialogAutoHideOverlay, settings.ini, dialogoverlay, dialogAutoHideOverlay, 0
 IniRead, dialogShowOnTaskbar, settings.ini, dialogoverlay, dialogShowOnTaskbar, 0
 IniRead, dialogOverlayWidth, settings.ini, dialogoverlay, dialogOverlayWidth, 930
@@ -90,20 +90,23 @@ IniRead, walkthroughOverlayPosX, settings.ini, walkthroughoverlay, walkthroughOv
 IniRead, walkthroughOverlayPosY, settings.ini, walkthroughoverlay, walkthroughOverlayPosY, 0
 IniRead, walkthroughOverlayTransparency, settings.ini, walkthroughoverlay, walkthroughOverlayTransparency, 255
 IniRead, ShowFullDialog, settings.ini, advanced, ShowFullDialog, 0
+IniRead, UseDeepLTranslate, settings.ini, deepl, UseDeepLTranslate, 0
 IniRead, DeepLApiPro, settings.ini, deepl, DeepLApiPro, 0
 IniRead, DeepLAPIKey, settings.ini, deepl, DeepLAPIKey, EMPTY
+IniRead, UseGoogleTranslate, settings.ini, google, UseGoogleTranslate, 0
+IniRead, GoogleTranslateAPIKey, settings.ini, google, GoogleTranslateAPIKey, EMPTY
 
 ;=== Create Start GUI =====================================================
 Gui, 1:Default
 Gui, Font, s10, Segoe UI
-Gui, Add, Tab3,, General|Dialog Overlay|Quest Overlay|Walkthrough Overlay|Advanced|DeepL API|Help|About
+Gui, Add, Tab3,, General|Dialog Overlay|Quest Overlay|Advanced|Translate APIs|Help|About
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/General-tab">General Settings Documentation</a>
 Gui, Add, Text,, ahkmon: Automate your DQX text translation.
-Gui, Add, Picture, w375 h206, imgs/dqx_logo.png
+Gui, Add, Picture, w300 h165, imgs/dqx_logo.png
 Gui, Add, Link,, Language you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
 Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
 Gui, Add, Checkbox, vTranslateQuests Checked%enableQuests%, Enable Quest translations?
-Gui, Add, Checkbox, vTranslateWalkthrough Checked%enableWalkthrough%, Enable Walkthrough translations?
+;Gui, Add, Checkbox, vTranslateWalkthrough Checked%enableWalkthrough%, Enable Walkthrough translations?
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
 Gui, Add, CheckBox, vJoystickEnabled Checked%JoystickEnabled%, Do you play with a controller?
 Gui, Add, Button, gSave, Run ahkmon
@@ -115,9 +118,9 @@ Gui, Add, CheckBox, vdialogResizeOverlay Checked%dialogResizeOverlay%, Allow res
 Gui, Add, CheckBox, vdialogRoundedOverlay Checked%dialogRoundedOverlay%, Rounded Dialog overlay?
 Gui, Add, CheckBox, vdialogAutoHideOverlay Checked%dialogAutoHideOverlay%, Automatically hide Dialog overlay?
 Gui, Add, CheckBox, vdialogShowOnTaskbar Checked%dialogShowOnTaskbar%, Show Dialog overlay on taskbar when active?
-Gui, Add, Text,, Dialog overlay transparency (lower = more transparent):
+Gui, Add, Text,, Dialog overlay transparency`n(lower = more transparent):
 Gui, Add, Slider, vdialogOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %dialogOverlayTransparency%
-Gui, Add, Text, vdialogOverlayColorInfo, Dialog overlay background color (use hex color codes):
+Gui, Add, Text, vdialogOverlayColorInfo, Dialog overlay background color`n(use hex color codes):
 Gui, Add, ComboBox, vdialogOverlayColor, %dialogOverlayColor%||
 Gui, Add, Text, vdialogOverlayWidthInfo, Initial Dialog overlay width:
 Gui, Add, Edit
@@ -140,9 +143,9 @@ Gui, Add, CheckBox, vquestResizeOverlay Checked%questResizeOverlay%, Allow resiz
 Gui, Add, CheckBox, vquestRoundedOverlay Checked%questRoundedOverlay%, Rounded Quest overlay?
 Gui, Add, CheckBox, vquestAutoHideOverlay Checked%questAutoHideOverlay%, Automatically hide Quest overlay?
 Gui, Add, CheckBox, vquestShowOnTaskbar Checked%questShowOnTaskbar%, Show Quest overlay on taskbar when active?
-Gui, Add, Text,, Quest overlay transparency (lower = more transparent):
+Gui, Add, Text,, Quest overlay transparency`n(lower = more transparent):
 Gui, Add, Slider, vquestOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %questOverlayTransparency%
-Gui, Add, Text, vquestOverlayColorInfo, Quest overlay background color (use hex color codes):
+Gui, Add, Text, vquestOverlayColorInfo, Quest overlay background color`n(use hex color codes):
 Gui, Add, ComboBox, vquestOverlayColor, %questOverlayColor%||
 Gui, Add, Text, vquestOverlayWidthInfo, Initial Quest overlay width:
 Gui, Add, Edit
@@ -159,51 +162,55 @@ Gui, Add, Text, vquestFontInfo, Select a font or enter a custom font available`n
 Gui, Add, ComboBox, vquestFontType, %questFontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
 
 ;; Walkthrough Overlay settings tab
-Gui, Tab, Walkthrough Overlay
-Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Walkthrough overlay Documentation</a>
-Gui, Add, CheckBox, vwalkthroughResizeOverlay Checked%walkthroughResizeOverlay%, Allow resize of Walkthrough overlay?
-Gui, Add, CheckBox, vwalkthroughRoundedOverlay Checked%walkthroughRoundedOverlay%, Rounded Walkthrough overlay?
-Gui, Add, CheckBox, vwalkthroughAutoHideOverlay Checked%walkthroughAutoHideOverlay%, Automatically hide Walkthrough overlay?
-Gui, Add, CheckBox, vwalkthroughShowOnTaskbar Checked%walkthroughShowOnTaskbar%, Show Walkthrough overlay on taskbar when active?
-Gui, Add, Text,, Walkthrough overlay transparency (lower = more transparent):
-Gui, Add, Slider, vwalkthroughOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %walkthroughOverlayTransparency%
-Gui, Add, Text, vwalkthroughOverlayColorInfo, Walkthrough overlay background color (use hex color codes):
-Gui, Add, ComboBox, vwalkthroughOverlayColor, %walkthroughOverlayColor%||
-Gui, Add, Text, vwalkthroughOverlayWidthInfo, Initial Walkthrough overlay width:
-Gui, Add, Edit
-Gui, Add, UpDown, vwalkthroughOverlayWidth Range100-2000, %walkthroughOverlayWidth%
-Gui, Add, Text, vwalkthroughOverlayHeightInfo, Initial Walkthrough overlay height:
-Gui, Add, Edit
-Gui, Add, UpDown, vwalkthroughOverlayHeight Range100-2000, %walkthroughOverlayHeight%
-Gui, Add, Text, vwalkthroughFontColorInfo, Walkthrough overlay font color:
-Gui, Add, ComboBox, vwalkthroughFontColor, %walkthroughFontColor%||Yellow|Red|Green|Blue|Black|Gray|Maroon|Purple|Fuchsia|Lime|Olive|Navy|Teal|Aqua
-Gui, Add, Text,, Walkthrough overlay font size:
-Gui, Add, Edit
-Gui, Add, UpDown, vwalkthroughFontSize Range8-30, %walkthroughFontSize%
-Gui, Add, Text, vwalkthroughFontInfo, Select a font or enter a custom font available`non your system to use with the Walkthrough overlay:
-Gui, Add, ComboBox, vwalkthroughFontType, %walkthroughFontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
+; Gui, Tab, Walkthrough Overlay
+; Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Overlay-Settings-tab">Walkthrough overlay Documentation</a>
+; Gui, Add, CheckBox, vwalkthroughResizeOverlay Checked%walkthroughResizeOverlay%, Allow resize of Walkthrough overlay?
+; Gui, Add, CheckBox, vwalkthroughRoundedOverlay Checked%walkthroughRoundedOverlay%, Rounded Walkthrough overlay?
+; Gui, Add, CheckBox, vwalkthroughAutoHideOverlay Checked%walkthroughAutoHideOverlay%, Automatically hide Walkthrough overlay?
+; Gui, Add, CheckBox, vwalkthroughShowOnTaskbar Checked%walkthroughShowOnTaskbar%, Show Walkthrough overlay on taskbar when active?
+; Gui, Add, Text,, Walkthrough overlay transparency`n(lower = more transparent):
+; Gui, Add, Slider, vwalkthroughOverlayTransparency Range10-255 TickInterval3 Page3 Line3 Tooltip, %walkthroughOverlayTransparency%
+; Gui, Add, Text, vwalkthroughOverlayColorInfo, Walkthrough overlay background color`n(use hex color codes):
+; Gui, Add, ComboBox, vwalkthroughOverlayColor, %walkthroughOverlayColor%||
+; Gui, Add, Text, vwalkthroughOverlayWidthInfo, Initial Walkthrough overlay width:
+; Gui, Add, Edit
+; Gui, Add, UpDown, vwalkthroughOverlayWidth Range100-2000, %walkthroughOverlayWidth%
+; Gui, Add, Text, vwalkthroughOverlayHeightInfo, Initial Walkthrough overlay height:
+; Gui, Add, Edit
+; Gui, Add, UpDown, vwalkthroughOverlayHeight Range100-2000, %walkthroughOverlayHeight%
+; Gui, Add, Text, vwalkthroughFontColorInfo, Walkthrough overlay font color:
+; Gui, Add, ComboBox, vwalkthroughFontColor, %walkthroughFontColor%||Yellow|Red|Green|Blue|Black|Gray|Maroon|Purple|Fuchsia|Lime|Olive|Navy|Teal|Aqua
+; Gui, Add, Text,, Walkthrough overlay font size:
+; Gui, Add, Edit
+; Gui, Add, UpDown, vwalkthroughFontSize Range8-30, %walkthroughFontSize%
+; Gui, Add, Text, vwalkthroughFontInfo, Select a font or enter a custom font available`non your system to use with the Walkthrough overlay:
+; Gui, Add, ComboBox, vwalkthroughFontType, %walkthroughFontType%||Calibri|Consolas|Courier New|Inconsolata|Segoe UI|Tahoma|Times New Roman|Trebuchet MS|Verdana
 
 ;; Advanced tab
 Gui, Tab, Advanced
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Advanced-tab">Advanced Settings Documentation</a>
-Gui, Add, Text,, This tab is for users that struggle with the default settings.
 Gui, Add, CheckBox, vShowFullDialog Checked%ShowFullDialog%, Show all text at once instead of line by line?
 Gui, Add, Text, w+300 vLogLink, 
 Gui, Add, Text,, Download latest database`n(this will overwrite your current database!)
 Gui, Add, Button, gDownloadDb, Download Database
 Gui, Add, Text, w+300 vDatabaseStatusMessage,
 
-;; DeepL API tab
-Gui, Tab, DeepL API
-Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/DeepL-API-tab">DeepL API Documentation</a>
-Gui, Add, Link,, <a href="https://www.deepl.com/pro#developer">Sign up for a FREE DeepL Developer API account here</a>
-Gui, Add, CheckBox, vDeepLAPIEnable Checked%DeepLAPIEnable%, Enable DeepL API Requests?`n(You signed up for a`nfree DeepL Developer API account)
-Gui, Add, CheckBox, vDeepLApiPro Checked%DeepLApiPro%, Use DeepL API Pro APIs?`n(You paid for DeepL)
-Gui, Add, Text,, DeepL API Key (Found in your account page):
-Gui, Add, Text, y+2 cRed, DO NOT SHARE THIS KEY WITH ANYONE
+;; Translate API tab
+Gui, Tab, Translate APIs
+Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki/Translate-APIs-tab">Translate APIs Documentation</a>
+Gui, Add, Text,, DeepL Configuration:
+Gui, Add, CheckBox, vUseDeepLTranslate Checked%UseDeepLTranslate%, Use DeepL Translate
+Gui, Add, CheckBox, vDeepLApiPro Checked%DeepLApiPro%, Use DeepL Pro APIs
+Gui, Add, Text,, DeepL API Key:
 Gui, Add, Edit, r1 vDeepLAPIKey w135, %DeepLAPIKey%
 Gui, Add, Button, gDeepLWordsLeft, Check remaining character count
 Gui, Add, Text, w+300 vDeepLWords, 
+Gui, Add, Text,, Google Translate Configuration:
+Gui, Add, CheckBox, vUseGoogleTranslate Checked%UseGoogleTranslate%, Use Google Translate
+Gui, Add, Text,, Google Translate API Key:
+Gui, Add, Edit, r1 vGoogleTranslateAPIKey w135, %GoogleTranslateAPIKey%
+Gui, Add, Button, gGoogleTranslateValidate, Test Google Translate API Key
+Gui, Add, Text, w+300 vGoogleTranslateValidate, 
 
 ;; Help tab
 Gui, Tab, Help
@@ -214,7 +221,7 @@ Gui, Tab, About
 Gui, Add, Link,, Join the unofficial Dragon Quest X <a href="https://discord.gg/UFaUHBxKMY">Discord</a>!
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon">Get the Source</a>
 Gui, Add, Link,, <a href="https://github.com/jmctune/ahkmon/wiki">Documentation</a>
-Gui, Add, Link,, Like what I'm doing? <a href="https://www.paypal.com/paypalme/supportjmct">Donate :P</a>
+Gui, Add, Link,, Like what I'm doing? <a href="https://ko-fi.com/serany">Donate :P</a>
 Gui, Add, Text,, Catch me on Discord: mebo#1337
 Gui, Add, Text,, Made by Serany <3
 
@@ -239,8 +246,32 @@ DeepLWordsLeft:
   oWhr.WaitForResponse()
   jsonResponse := JSON.Load(oWhr.ResponseText)
   charRemaining := (jsonResponse.character_limit - jsonResponse.character_count)
-  GuiControl, Text, DeepLWords, %charRemaining% characters remaining
+  if (charRemaining != "")
+    GuiControl, Text, DeepLWords, %charRemaining% characters remaining
+  else
+    GuiControl, Text, DeepLWords, Key validation failed
   return
+
+GoogleTranslateValidate:
+  GuiControlGet, GoogleTranslateAPIKey
+
+  body := "&source=ja" . "&target=" . Language . "&q=" . ""
+  url := "https://www.googleapis.com/language/translate/v2?key=" . GoogleTranslateAPIKey . body
+  oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+  oWhr.Open("POST", url, 0)
+  oWhr.SetRequestHeader("Content-Type", "application/json; charset=utf-8")
+  oWhr.Send()
+  oWhr.WaitForResponse()
+  arr := oWhr.responseBody
+  pData := NumGet(ComObjValue(arr) + 8 + A_PtrSize)
+  length := arr.MaxIndex() + 1
+  response := StrGet(pData, length, "utf-8")
+  jsonResponse := JSON.Load(response)
+  validate := jsonResponse.data.translations[1].translatedText
+  if (validate = "")
+    GuiControl, Text, GoogleTranslateValidate, Success!
+  else
+    GuiControl, Text, GoogleTranslateValidate, Failed to validate
 
 DownloadDb:
   UrlDownloadToFile, https://github.com/jmctune/ahkmon/raw/main/dqxtrl.db, dqxtrl.db
@@ -300,29 +331,22 @@ Save:
   IniWrite, %walkthroughFontType%, settings.ini, walkthroughoverlay, walkthroughFontType
   IniWrite, %walkthroughOverlayTransparency%, settings.ini, walkthroughoverlay, walkthroughOverlayTransparency
   IniWrite, %ShowFullDialog%, settings.ini, advanced, ShowFullDialog
+  IniWrite, %UseDeepLTranslate%, settings.ini, deepl, UseDeepLTranslate
   IniWrite, %DeepLApiPro%, settings.ini, deepl, DeepLApiPro
   IniWrite, %DeepLAPIKey%, settings.ini, deepl, DeepLAPIKey
+  IniWrite, %UseGoogleTranslate%, settings.ini, google, UseGoogleTranslate
+  IniWrite, %GoogleTranslateAPIKey%, settings.ini, google, GoogleTranslateAPIKey
 
-;=== Globals =================================================================
-Global Log
-
-if DeepLApiPro = 1
-  url := "https://api.deepl.com/v2"
-else
-  url := "https://api-free.deepl.com/v2"
-
-oWhr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-url := url . "/usage?auth_key=" . DeepLAPIKey
-oWhr.Open("POST", url, 0)
-oWhr.SetRequestHeader("User-Agent", "DQXTranslator")
-oWhr.Send()
-oWhr.WaitForResponse()
-jsonResponse := JSON.Load(oWhr.ResponseText)
-charRemaining := (jsonResponse.character_limit - jsonResponse.character_count)
-
-if (charRemaining = "")
+;=== Verify user picked one of the API options ===============================
+if (UseDeepLTranslate = 1 && UseGoogleTranslate = 1)
 {
-  MsgBox DeepL API key is invalid. Ensure you entered the key correctly and try again.
+  MsgBox You enabled both DeepL and Google Translate. Please select one or the other.
+  ExitApp
+}
+
+if (UseDeepLTranslate = 0 && UseGoogleTranslate = 0)
+{
+  MsgBox You didn't enable a translation service. Please enable the one you want to use and try again.
   ExitApp
 }
 
@@ -332,9 +356,9 @@ Run, dialogFinder.exe "nothing"
 Sleep 500
 if (translateQuests = 1)
   Run, questFinder.exe "nothing"
-Sleep 500
-if (translateWalkthrough = 1)
-  Run walkthroughFinder.exe "nothing"
+;Sleep 500
+; if (translateWalkthrough = 1)
+;   Run walkthroughFinder.exe "nothing"
 
 ;; If ahkmon is closed, kill the child processes it spawned as well.
 OnExit("ExitSub")

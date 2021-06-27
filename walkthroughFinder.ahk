@@ -1,7 +1,7 @@
 #NoEnv
 #NoTrayIcon
 #SingleInstance force
-#Include <DeepLAPI>
+#Include <translate>
 #Include <GetKeyPress>
 #Include <classMemory>
 #Include <SQLiteDB>
@@ -20,7 +20,7 @@ if A_Args.Length() < 1
 IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, ResizeOverlay, settings.ini, walkthroughoverlay, walkthroughResizeOverlay, 0
-IniRead, RoundedOverlay, settings.ini, walkthroughoverlay, walkthroughRoundedOverlay, 1
+IniRead, RoundedOverlay, settings.ini, walkthroughoverlay, walkthroughRoundedOverlay, 0
 IniRead, AutoHideOverlay, settings.ini, walkthroughoverlay, walkthroughAutoHideOverlay, 0
 IniRead, ShowOnTaskbar, settings.ini, walkthroughoverlay, walkthroughShowOnTaskbar, 0
 IniRead, OverlayWidth, settings.ini, walkthroughoverlay, walkthroughOverlayWidth, 930
@@ -110,7 +110,7 @@ loop
         {
           GuiControl, Text, Overlay, ...
           Gui, Show
-          walkthroughText := DeepLAPI(newWalkthrough, "false")
+          walkthroughText := translate(newWalkthrough, "false")
           GuiControl, Text, Overlay, %walkthroughText%
 
           Loop {
