@@ -120,7 +120,6 @@ else
 
 Gui, % flags . customFlags
 ;=== End overlay =============================================================
-
 ;; Array of Bytes pattern that tells us if the dialog box is open or closed, as well as
 ;; the partial location of the address where the dialog text is.
 aAOBPattern := [255, 255, 255, 127, 255, 255, 255, 127, 0, 0, 0, 0, 0, 0, 0, 0, 253, "?", 168, 153]
@@ -130,9 +129,8 @@ loop
   Process, Exist, DQXGame.exe
   if ErrorLevel
   {
-    if !dqx.isHandleValid()
-      dqx := new _ClassMemory("ahk_exe DQXGame.exe", "", hProcessCopy)
-      baseAddress := dqx.getProcessBaseAddress("ahk_exe DQXGame.exe")
+    dqx := new _ClassMemory("ahk_exe DQXGame.exe", "", hProcessCopy)
+    baseAddress := dqx.getProcessBaseAddress("ahk_exe DQXGame.exe")
 
     ;; Start searching for text.
     loop
@@ -201,11 +199,6 @@ loop
       ;; Exit app if DQX closed
       Process, Exist, DQXGame.exe
       if !ErrorLevel
-        ExitApp
-
-      ;; Exit app if ahkmon is closed
-      Process, Exist, ahkmon.exe
-      If !ErrorLevel
         ExitApp
     }
   }

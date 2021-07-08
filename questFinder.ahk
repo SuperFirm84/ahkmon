@@ -48,11 +48,14 @@ Global UseGoogleTranslate
 Global GoogleTranslateAPIKey
 
 ;; === General Quest Text ====================================================
-questAddress := 0x01E5A440
-questNameOffsets := [0x8, 0x74, 0x8, 0x2C, 0x4, 0x4A0]
-questNumberOffsets := [0x8, 0x120, 0x84, 0x8, 0x7D0]
-questSubQuestNameOffsets := [0x20, 0x4, 0x84, 0x8, 0x48C]
-questDescriptionOffsets := [0x8, 0x74, 0x30, 0x18, 0x4FC]
+questAddress := 0x01FEF600
+questNameOffsets := [0x8, 0x74, 0x8, 0x4C4]
+questSubQuestNameOffsets := [0x8, 0x74, 0x8, 0x48C]
+questDescriptionOffsets := [0x8, 0x74, 0x8, 0x4FC]
+
+;; === Master Orb Quests =====================================================
+masterOrbQuestAddress :=
+masterOrbQuestOffsets := 
 
 ;; === "Story So Far" text ===================================================
 ;; This is not yet implemented as although this kind of works, it's not 100% stable at the moment
@@ -110,9 +113,8 @@ loop
   Process, Exist, DQXGame.exe
   if ErrorLevel
   {
-    if !dqx.isHandleValid()
-      dqx := new _ClassMemory("ahk_exe DQXGame.exe", "", hProcessCopy)
-      baseAddress := dqx.getProcessBaseAddress("ahk_exe DQXGame.exe")
+    dqx := new _ClassMemory("ahk_exe DQXGame.exe", "", hProcessCopy)
+    baseAddress := dqx.getProcessBaseAddress("ahk_exe DQXGame.exe")
 
     ;; Start searching for text.
     loop
@@ -164,15 +166,10 @@ loop
       lastQuestName := questName
       Sleep 750
 
-      ;; Exit app if DQX closed
+      ;; Break out of loop if game closed
       Process, Exist, DQXGame.exe
       if !ErrorLevel
-        ExitApp
-
-      ;; Exit app if ahkmon is closed
-      Process, Exist, ahkmon.exe
-      If !ErrorLevel
-        ExitApp
+        break
     }
   }
 

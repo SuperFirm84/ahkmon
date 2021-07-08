@@ -7,12 +7,15 @@
   ;; Iterate through each line returned.
   fullDialog :=
   for index, sentence in StrSplit(dqText, "`n`n", "`r") {
-    if InStr(sentence, "'")
-      result :=
+    if (sentence = "")
+      continue
     else
     {
       ;; See if we have an entry available to grab from the database before sending the request to translate.
       result :=
+      if InStr(sentence, "'")
+        StrReplace(sentence, "'","''")  ;; Escape single quotes found in contractions before sending to database
+
       query := "SELECT " . Language . " FROM dialog WHERE jp = '" . sentence . "';"
 
       if !db.OpenDB(dbFileName)
@@ -86,7 +89,9 @@
       {
         fullDialog := "Failed to talk to the configured translation service. Your API key is likely invalid."
         return fullDialog
-        break
+        if (Log = 1)
+          FileAppend, JP: %sentence%`nEN: Did not translate.`n`n, txtout.txt, UTF-8
+        continue
       }
 
       ;; Replace encoded text with actual characters
@@ -128,6 +133,9 @@
         fullDialog .= translatedText "`n`n"
       else
         fullDialog .= translatedText
+
+      if (Log = 1)
+        FileAppend, JP: %sentence%`nEN: %translatedText%`n`n, txtout.txt, UTF-8
     }
     ;; An entry in the database was found, so add to it here.
     ;; Don't add newlines if it isn't dialog text.
@@ -137,10 +145,10 @@
         fullDialog .= result "`n`n"
       else
         fullDialog .= result
-    }
 
-    if (Log = 1)
-      FileAppend, JP: %sentence%`nEN: %result%`n`n, txtout.txt, UTF-8
+      if (Log = 1)
+        FileAppend, JP: %sentence%`nEN: %result%`n`n, txtout.txt, UTF-8
+    }
   }
 
   ;; Close database connection.
