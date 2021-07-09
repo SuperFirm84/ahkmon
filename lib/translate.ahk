@@ -13,8 +13,7 @@
     {
       ;; See if we have an entry available to grab from the database before sending the request to translate.
       result :=
-      if InStr(sentence, "'")
-        StrReplace(sentence, "'","''")  ;; Escape single quotes found in contractions before sending to database
+      sentence := StrReplace(sentence, "'", "''")  ;; Escape single quotes found in contractions before sending to database
 
       query := "SELECT " . Language . " FROM dialog WHERE jp = '" . sentence . "';"
 
@@ -88,9 +87,9 @@
       if (translatedText = "")
       {
         fullDialog := "Failed to talk to the configured translation service. Your API key is likely invalid."
-        return fullDialog
         if (Log = 1)
           FileAppend, JP: %sentence%`nEN: Did not translate.`n`n, txtout.txt, UTF-8
+        return fullDialog
         continue
       }
 
@@ -104,7 +103,6 @@
         translatedText := StrReplace(translatedText, "ã"," ")
 
       translatedText := StrReplace(translatedText, "'","''")  ;; Escape single quotes found in contractions before sending to database
-      sentence := StrReplace(sentence, "'", "''")
 
       ;; Write new entry to the database if it doesn't exist.
       ;; If we're in this block, jp was found, but translation for another language

@@ -9,7 +9,6 @@ SendMode Input
 ;=== Close any existing finder windows ======================================
 Process, Close, questFinder.exe
 Process, Close, dialogFinder.exe
-Process, Close, walkthroughFinder.exe
 
 ;=== Auto update ============================================================
 ;; Get latest version number from Github
@@ -358,9 +357,6 @@ Run, dialogFinder.exe "nothing"
 Sleep 500
 if (translateQuests = 1)
   Run, questFinder.exe "nothing"
-;Sleep 500
-; if (translateWalkthrough = 1)
-;   Run walkthroughFinder.exe "nothing"
 
 ;; If ahkmon is closed, kill the child processes it spawned as well.
 OnExit("ExitSub")
@@ -369,6 +365,5 @@ ExitSub()
 {
   Process, Close, questFinder.exe
   Process, Close, dialogFinder.exe
-  Process, Close, walkthroughFinder.exe
   ExitApp
 }
