@@ -48,6 +48,7 @@ IniRead, Language, settings.ini, general, Language, en
 IniRead, Log, settings.ini, general, Log, 0
 IniRead, JoystickEnabled, settings.ini, general, JoystickEnabled, 0
 IniRead, enableWalkthrough, settings.ini, general, enableWalkthrough, 0
+IniRead, enableDialog, settings.ini, general, enableDialog, 1
 IniRead, enableQuests, settings.ini, general, enableQuests, 1
 IniRead, dialogResizeOverlay, settings.ini, dialogoverlay, dialogResizeOverlay, 0
 IniRead, dialogRoundedOverlay, settings.ini, dialogoverlay, dialogRoundedOverlay, 0
@@ -104,6 +105,7 @@ Gui, Add, Text,, ahkmon: Automate your DQX text translation.
 Gui, Add, Picture, w300 h165, imgs/dqx_logo.png
 Gui, Add, Link,, Language you want to translate text to:`n<a href="https://www.andiamo.co.uk/resources/iso-language-codes/">Regional Codes</a>
 Gui, Add, DDL, vLanguage, %Language%||bg|cs|da|de|el|en|es|et|fi|fr|hu|it|lt|lv|nl|pl|pt|ro|ru|sk|sl|sv|zh
+Gui, Add, Checkbox, vTranslateDialog Checked%enableDialog%, Enable Dialog translations?
 Gui, Add, Checkbox, vTranslateQuests Checked%enableQuests%, Enable Quest translations?
 ;Gui, Add, Checkbox, vTranslateWalkthrough Checked%enableWalkthrough%, Enable Walkthrough translations?
 Gui, Add, CheckBox, vLog Checked%Log%, Enable logging to file?
@@ -298,6 +300,7 @@ Save:
   IniWrite, %Log%, settings.ini, general, Log
   IniWrite, %JoystickEnabled%, settings.ini, general, JoystickEnabled
   IniWrite, %translateWalkthrough%, settings.ini, general, enableWalkthrough
+  IniWrite, %translateDialog%, settings.ini, general, enableDialog
   IniWrite, %translateQuests%, settings.ini, general, enableQuests
   IniWrite, %dialogOverlayWidth%, settings.ini, dialogoverlay, dialogOverlayWidth
   IniWrite, %dialogRoundedOverlay%, settings.ini, dialogoverlay, dialogRoundedOverlay
@@ -353,7 +356,8 @@ if (UseDeepLTranslate = 0 && UseGoogleTranslate = 0)
 
 ;=== Start DQ memreads =======================================================
 ;; Pass arbitrary arg. Don't want user to run these directly.
-Run, dialogFinder.exe "nothing"
+if (translateDialog = 1)
+  Run, dialogFinder.exe "nothing"
 Sleep 500
 if (translateQuests = 1)
   Run, questFinder.exe "nothing"
