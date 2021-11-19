@@ -159,6 +159,7 @@ loop
         dialogText := RegExReplace(dialogText, "<br>", "`n`n")
         dialogText := RegExReplace(dialogText, "(<.+?>)", "")
         dialogText := StrReplace(dialogText, "「", "")
+        dialogText := StrReplace(dialogText, "", "")
         dialogText := translate(dialogText, "true")
 
         ;; Iterate through each line in the dialog if line by line disabled.
